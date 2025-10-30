@@ -1,0 +1,482 @@
+---
+title: "Part 1: Introduction to Computational Neuroscience"
+subtitle: "Foundations and Motivation for Neural Modeling"
+author: 
+  - "Dr. Angel Lareo"
+  - "Dr. Alicia Garrido-Peña"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+---
+
+## Why Computational Neuroscience?
+
+The brain is one of the most complex systems in nature. Understanding how neurons communicate, process information, and generate behavior requires tools that can bridge multiple scales—from molecular mechanisms to network dynamics to cognitive functions.
+
+### The Challenge of Complexity
+
+Consider these facts:
+
+- The human brain contains approximately **86 billion neurons**
+- Each neuron can connect to thousands of other neurons
+- Neural signals operate on timescales from **milliseconds to hours**
+- Brain functions emerge from the collective activity of neural populations
+
+**Question**: How can we understand such a complex system?
+
+**Answer**: Through computational models that help us:
+
+1. **Formalize hypotheses** about neural function
+2. **Predict** neural behavior under different conditions
+3. **Test theories** that would be difficult or impossible to test experimentally
+4. **Integrate** findings across different scales and modalities
+
+### The Role of Mathematical Modeling
+
+As demonstrated in the work of Garrido-Peña, Lareo, and colleagues (2014), computational approaches allow us to:
+
+- Analyze frequency-dependent responses in neural circuits
+- Understand how different brain regions (e.g., neocortex vs. olfactory bulb) process information differently
+- Decompose complex signals into interpretable components
+- Connect microscopic neural properties to macroscopic measurements
+
+::: {.callout-note}
+## Key Insight from Research
+
+The frequency-dependent response of neural circuits is not uniform across brain regions. The neocortex and olfactory bulb show distinct filtering properties, which can be understood through mathematical modeling of their underlying circuit architecture (Garrido-Peña et al., 2014, DOI: [10.1007/s10492-014-0069-z](https://doi.org/10.1007/s10492-014-0069-z)).
+:::
+
+## Levels of Neural Modeling
+
+Neural systems can be modeled at different levels of abstraction:
+
+### 1. Biophysical Models
+**Detail**: High (ion channels, membrane properties)  
+**Scale**: Single neuron  
+**Examples**: Hodgkin-Huxley model, multi-compartment models
+
+These models capture detailed mechanisms but are computationally expensive.
+
+### 2. Simplified Neuron Models
+**Detail**: Medium (integrate-and-fire, adaptive threshold)  
+**Scale**: Single neuron to small networks  
+**Examples**: Leaky integrate-and-fire (LIF), Izhikevich model
+
+Balance between biological realism and computational efficiency.
+
+### 3. Rate Models
+**Detail**: Low (average firing rates)  
+**Scale**: Large networks  
+**Examples**: Wilson-Cowan model, neural field models
+
+Capture population dynamics efficiently.
+
+### 4. Abstract Models
+**Detail**: Minimal (information processing)  
+**Scale**: System-level  
+**Examples**: Artificial neural networks, decision-making models
+
+Focus on computational function rather than biological detail.
+
+::: {.callout-tip}
+## Choosing the Right Level
+
+The appropriate level of modeling depends on your question:
+
+- Studying ion channel mutations? → Biophysical model
+- Understanding network oscillations? → Simplified neuron model
+- Modeling sensory processing across large populations? → Rate model
+- Testing cognitive theories? → Abstract model
+:::
+
+## Single Neuron Dynamics
+
+### The Neuron as an Electrical Circuit
+
+A neuron can be conceptualized as an electrical circuit with:
+
+- **Capacitance** (C): Cell membrane stores charge
+- **Resistance** (R): Ion channels control current flow
+- **Current sources** (I): Synaptic inputs and intrinsic currents
+
+### The Leaky Integrate-and-Fire Model
+
+One of the simplest yet most useful models is the Leaky Integrate-and-Fire (LIF) neuron:
+
+$$
+C_m \frac{dV}{dt} = -g_L(V - E_L) + I(t)
+$$
+
+Where:
+
+- $V$ = membrane potential
+- $C_m$ = membrane capacitance
+- $g_L$ = leak conductance
+- $E_L$ = leak reversal potential (resting potential)
+- $I(t)$ = input current
+
+When $V$ reaches threshold $V_{th}$, the neuron fires a spike and resets to $V_{reset}$.
+
+#### Physical Interpretation
+
+```python
+# Let's simulate a simple LIF neuron
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+C_m = 1.0      # membrane capacitance (nF)
+g_L = 0.1      # leak conductance (μS)
+E_L = -70.0    # leak reversal potential (mV)
+V_th = -50.0   # threshold potential (mV)
+V_reset = -70.0 # reset potential (mV)
+
+# Simulation parameters
+dt = 0.1       # time step (ms)
+T = 200        # total time (ms)
+time = np.arange(0, T, dt)
+
+# Input current (step current)
+I = np.zeros_like(time)
+I[500:1500] = 2.0  # 2 nA current pulse
+
+# Simulate
+V = np.zeros_like(time)
+V[0] = E_L
+spikes = []
+
+for i in range(1, len(time)):
+    # LIF equation
+    dV = dt * (-g_L * (V[i-1] - E_L) + I[i]) / C_m
+    V[i] = V[i-1] + dV
+    
+    # Check for spike
+    if V[i] >= V_th:
+        spikes.append(i)
+        V[i] = V_reset
+
+# Plot
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+
+ax1.plot(time, V, 'b-', linewidth=1.5)
+ax1.axhline(V_th, color='r', linestyle='--', label='Threshold')
+ax1.set_ylabel('Membrane Potential (mV)')
+ax1.set_title('Leaky Integrate-and-Fire Neuron')
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+
+ax2.plot(time, I, 'g-', linewidth=1.5)
+ax2.set_xlabel('Time (ms)')
+ax2.set_ylabel('Input Current (nA)')
+ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+This simple model captures essential features of neural excitability:
+
+- **Integration**: The neuron integrates incoming signals over time
+- **Leak**: Without input, the membrane potential decays to rest
+- **Threshold**: Spikes occur when voltage reaches a threshold
+- **Reset**: After spiking, the neuron returns to a reset state
+
+## From Neurons to Networks
+
+### Why Networks Matter
+
+Individual neurons are limited in their computational capabilities. Complex brain functions emerge from **networks** of interconnected neurons.
+
+### Synaptic Connections
+
+Neurons communicate through synapses:
+
+- **Chemical synapses**: Release neurotransmitters (excitatory or inhibitory)
+- **Electrical synapses**: Direct electrical coupling through gap junctions
+
+The strength and dynamics of synaptic connections determine network behavior.
+
+### Network Architecture
+
+Different connection patterns lead to different dynamics:
+
+1. **Feedforward networks**: Information flows in one direction
+2. **Recurrent networks**: Neurons connect back to each other
+3. **Random networks**: Connections made with some probability
+4. **Structured networks**: Specific patterns (e.g., columnar organization)
+
+### Population Dynamics
+
+In large networks, we often care about **population-level** properties:
+
+- **Firing rates**: Average number of spikes per unit time
+- **Synchrony**: How coordinated is the activity?
+- **Oscillations**: Rhythmic patterns of activity
+- **Frequency responses**: How does the network respond to inputs at different frequencies?
+
+::: {.callout-important}
+## Frequency-Dependent Responses
+
+As shown by Garrido-Peña et al. (2014), neural circuits exhibit frequency-dependent filtering. This means that:
+
+- Different frequency inputs are processed differently
+- Circuit architecture (connectivity, synaptic properties) determines the frequency response
+- Brain regions have distinct frequency preferences
+- Understanding these properties requires both experimental measurements and computational models
+
+This is crucial for understanding how neural circuits process temporal information and generate oscillations.
+:::
+
+## Mathematical Framework for Network Analysis
+
+### State Space Representation
+
+A network of $N$ neurons can be described by a state vector:
+
+$$
+\mathbf{V}(t) = [V_1(t), V_2(t), ..., V_N(t)]^T
+$$
+
+The network dynamics follow:
+
+$$
+\frac{d\mathbf{V}}{dt} = \mathbf{F}(\mathbf{V}, \mathbf{I}, t)
+$$
+
+Where $\mathbf{F}$ describes the evolution of all neurons, including their interactions.
+
+### Linear Stability Analysis
+
+To understand network behavior, we can analyze the stability of steady states:
+
+1. Find fixed points where $\mathbf{F}(\mathbf{V}^*, \mathbf{I}, t) = 0$
+2. Linearize around fixed points
+3. Compute eigenvalues of the Jacobian matrix
+4. Determine stability and oscillation frequencies
+
+This approach, similar to that used in analyzing frequency responses in experimental data, helps predict when networks will:
+
+- Remain at rest
+- Show stable activity
+- Generate oscillations
+- Exhibit instabilities
+
+## Applications to Real Neural Systems
+
+### Example 1: Olfactory Bulb vs. Neocortex
+
+The work of Garrido-Peña et al. (2014) demonstrates how computational approaches can reveal differences between brain regions:
+
+**Olfactory Bulb**:
+- More homogeneous organization
+- Different laminar structure
+- Distinct frequency filtering properties
+
+**Neocortex**:
+- Layered architecture
+- Complex connectivity patterns
+- Different frequency response characteristics
+
+By combining experimental measurements (line source analysis) with computational models, we can:
+
+- Decompose recorded signals into components
+- Infer underlying circuit properties
+- Predict responses to novel stimuli
+- Understand functional differences between regions
+
+### Example 2: Network Oscillations
+
+Many brain functions involve oscillatory activity:
+
+- **Gamma (30-80 Hz)**: Attention, binding
+- **Beta (13-30 Hz)**: Motor control
+- **Alpha (8-13 Hz)**: Resting state
+- **Theta (4-8 Hz)**: Memory, navigation
+- **Delta (1-4 Hz)**: Deep sleep
+
+Computational models help us understand:
+
+- How oscillations emerge from network interactions
+- Why different frequencies appear in different contexts
+- How oscillations support information processing
+
+## Building Intuition with Simple Models
+
+Let's explore a simple two-neuron network:
+
+```python
+# Two coupled neurons (excitatory and inhibitory)
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+C_m = 1.0
+g_L = 0.1
+E_L = -70.0
+V_th = -50.0
+V_reset = -70.0
+
+# Synaptic parameters
+g_syn_E = 0.5  # excitatory conductance
+g_syn_I = 1.0  # inhibitory conductance
+E_syn_E = 0.0  # excitatory reversal
+E_syn_I = -80.0  # inhibitory reversal
+tau_syn = 5.0  # synaptic time constant
+
+# Simulation
+dt = 0.1
+T = 500
+time = np.arange(0, T, dt)
+
+# External input to excitatory neuron only
+I_ext = np.zeros((2, len(time)))
+I_ext[0, 1000:4000] = 1.5
+
+# Initialize
+V = np.zeros((2, len(time)))
+V[:, 0] = E_L
+s = np.zeros((2, len(time)))  # synaptic variables
+
+# Simulate
+for i in range(1, len(time)):
+    for n in range(2):
+        # Synaptic current
+        if n == 0:  # Excitatory neuron receives inhibition
+            I_syn = -g_syn_I * s[1, i-1] * (V[n, i-1] - E_syn_I)
+        else:  # Inhibitory neuron receives excitation
+            I_syn = -g_syn_E * s[0, i-1] * (V[n, i-1] - E_syn_E)
+        
+        # Update voltage
+        dV = dt * (-g_L * (V[n, i-1] - E_L) + I_ext[n, i] + I_syn) / C_m
+        V[n, i] = V[n, i-1] + dV
+        
+        # Update synaptic variable
+        s[n, i] = s[n, i-1] + dt * (-s[n, i-1] / tau_syn)
+        
+        # Check for spike
+        if V[n, i] >= V_th:
+            V[n, i] = V_reset
+            s[n, i] = 1.0  # Synaptic activation
+
+# Plot
+fig, axes = plt.subplots(3, 1, figsize=(12, 8), sharex=True)
+
+axes[0].plot(time, V[0, :], 'b-', label='Excitatory', linewidth=1.5)
+axes[0].axhline(V_th, color='r', linestyle='--', alpha=0.5)
+axes[0].set_ylabel('V (mV)')
+axes[0].set_title('Two-Neuron Network: E-I Interaction')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3)
+
+axes[1].plot(time, V[1, :], 'r-', label='Inhibitory', linewidth=1.5)
+axes[1].axhline(V_th, color='r', linestyle='--', alpha=0.5)
+axes[1].set_ylabel('V (mV)')
+axes[1].legend()
+axes[1].grid(True, alpha=0.3)
+
+axes[2].plot(time, I_ext[0, :], 'g-', linewidth=1.5)
+axes[2].set_xlabel('Time (ms)')
+axes[2].set_ylabel('Input (nA)')
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+This simple E-I network demonstrates:
+
+- **Feedback inhibition**: The excitatory neuron activates the inhibitory neuron
+- **Oscillations**: Under the right conditions, this can generate rhythmic activity
+- **Frequency control**: The oscillation frequency depends on synaptic and membrane time constants
+
+## Key Principles for Modeling
+
+Based on the foundations we've covered and the research approach exemplified by Garrido-Peña et al. (2014), here are key principles for computational neuroscience:
+
+1. **Start Simple**: Begin with the simplest model that captures your phenomenon
+2. **Match the Scale**: Choose the level of detail appropriate for your question
+3. **Validate**: Compare model predictions with experimental data
+4. **Iterate**: Refine models based on discrepancies
+5. **Understand Limitations**: Know what your model can and cannot tell you
+
+::: {.callout-tip}
+## The Modeling Cycle
+
+1. **Formulate** a hypothesis about neural function
+2. **Build** a computational model
+3. **Simulate** and analyze model behavior
+4. **Compare** with experimental data
+5. **Refine** the model and repeat
+:::
+
+## Connecting to Experimental Data
+
+Computational models become most powerful when integrated with experimental measurements. The work on frequency-dependent responses (Garrido-Peña et al., 2014) illustrates this beautifully:
+
+### Line Source Analysis (LSA)
+
+This technique allows:
+
+- Separation of neural sources at different depths
+- Frequency-domain analysis of neural signals
+- Identification of distinct neural generators
+- Comparison across brain regions
+
+### Model-Data Integration
+
+Computational models help interpret experimental findings:
+
+1. **Forward problem**: Given a model, predict what measurements should look like
+2. **Inverse problem**: Given measurements, infer underlying neural properties
+3. **Parameter estimation**: Fit model parameters to match data
+4. **Hypothesis testing**: Use models to generate testable predictions
+
+## Summary
+
+In this introduction, we've covered:
+
+- ✅ The motivation for computational neuroscience
+- ✅ Levels of neural modeling
+- ✅ Single neuron dynamics (LIF model)
+- ✅ Network interactions and population dynamics
+- ✅ Frequency-dependent responses in neural circuits
+- ✅ Mathematical frameworks for analysis
+- ✅ Connection to experimental research
+
+::: {.callout-note}
+## Key Takeaways
+
+1. **Models are tools**: They help us understand, predict, and test ideas about neural systems
+2. **Choose the right level**: Match model complexity to your question
+3. **Integration matters**: Models are most powerful when combined with experiments
+4. **Frequency matters**: Neural circuits have frequency-dependent properties that are crucial for function
+5. **Start simple, build up**: Begin with simple models and add complexity as needed
+:::
+
+## Looking Ahead
+
+Now that we understand **why** and **what** we model in computational neuroscience, we're ready to learn **how** to implement these models using the Neun library.
+
+In the next sections, we'll:
+
+- Set up and explore the Neun library
+- Implement single neuron models
+- Build neural networks
+- Simulate complex dynamics
+- Analyze and visualize results
+
+---
+
+👉 **Continue to [Part 2: Getting Started with Neun](02-neun-basics.qmd)**
+
+## References
+
+Garrido-Peña, A., Martín, E. D., Lareo, A., Herreras, O., & Reboreda, A. (2014). Frequency-dependent response of the neocortex and the olfactory bulb measured by line source analysis in rats. *Applications of Mathematics*, 59(6), 651-663. DOI: [10.1007/s10492-014-0069-z](https://doi.org/10.1007/s10492-014-0069-z)
+
+## Further Reading
+
+- Dayan, P., & Abbott, L. F. (2001). *Theoretical Neuroscience*. MIT Press.
+- Gerstner, W., Kistler, W. M., Naud, R., & Paninski, L. (2014). *Neuronal Dynamics*. Cambridge University Press.
+- Ermentrout, G. B., & Terman, D. H. (2010). *Mathematical Foundations of Neuroscience*. Springer.

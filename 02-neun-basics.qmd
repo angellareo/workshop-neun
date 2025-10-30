@@ -1,0 +1,698 @@
+---
+title: "Part 2: Getting Started with Neun"
+subtitle: "Introduction to the Neun Library"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+---
+
+## Introduction to Neun
+
+Neun is a Python library designed for simulating neuronal networks. It provides a flexible framework for building models at different levels of complexity, from single neurons to large-scale networks.
+
+### What Makes Neun Special?
+
+- **Pythonic**: Natural Python syntax and integration with scientific libraries
+- **Flexible**: Support for various neuron models and network architectures
+- **Efficient**: Optimized for performance with NumPy/SciPy
+- **Extensible**: Easy to add custom neuron types and synaptic models
+- **Interactive**: Works seamlessly with Jupyter notebooks
+
+## Installation and Setup
+
+### Installing Neun
+
+First, ensure you have Python 3.8 or higher installed. Then install Neun and its dependencies:
+
+```bash
+pip install neun numpy matplotlib scipy
+```
+
+If you're using the workshop materials, you can install all dependencies at once:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Verifying Installation
+
+Let's check that everything is installed correctly:
+
+```python
+import neun
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+
+print(f"Neun version: {neun.__version__}")
+print(f"NumPy version: {np.__version__}")
+print("All dependencies loaded successfully!")
+```
+
+::: {.callout-tip}
+## Using Virtual Environments
+
+It's recommended to use a virtual environment for the workshop:
+
+```bash
+python -m venv neun-workshop
+source neun-workshop/bin/activate  # On Windows: neun-workshop\Scripts\activate
+pip install -r requirements.txt
+```
+:::
+
+## Neun Architecture Overview
+
+Neun is organized around several key concepts:
+
+### 1. Neurons
+
+Individual computational units that integrate inputs and generate outputs (spikes or continuous values).
+
+**Key neuron types**:
+
+- `LIFNeuron`: Leaky Integrate-and-Fire
+- `IzhikevichNeuron`: Izhikevich model
+- `HHNeuron`: Hodgkin-Huxley model
+- `AdExNeuron`: Adaptive Exponential model
+
+### 2. Synapses
+
+Connections between neurons that transmit signals.
+
+**Key synapse types**:
+
+- `DeltaSynapse`: Instantaneous transmission
+- `ExponentialSynapse`: Exponentially decaying
+- `BiexponentialSynapse`: Rise and fall dynamics
+- `STDPSynapse`: Spike-timing-dependent plasticity
+
+### 3. Networks
+
+Collections of neurons and synapses with specified connectivity.
+
+**Network features**:
+
+- Population-based organization
+- Flexible connectivity patterns
+- Support for multiple neuron/synapse types
+- Modular architecture
+
+### 4. Simulation
+
+The engine that evolves the network state over time.
+
+**Simulation capabilities**:
+
+- Adaptive time stepping
+- Event-driven updates
+- Recording and monitoring
+- Efficient numerical integration
+
+## Your First Neun Program
+
+Let's create a simple single-neuron simulation to understand the basic workflow:
+
+```python
+import neun
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Step 1: Create a neuron
+neuron = neun.LIFNeuron(
+    C_m=1.0,          # Membrane capacitance (nF)
+    g_L=0.1,          # Leak conductance (μS)
+    E_L=-70.0,        # Leak reversal potential (mV)
+    V_th=-50.0,       # Spike threshold (mV)
+    V_reset=-70.0,    # Reset potential (mV)
+    tau_ref=2.0       # Refractory period (ms)
+)
+
+# Step 2: Create input current
+dt = 0.1              # Time step (ms)
+T = 200               # Simulation duration (ms)
+time = np.arange(0, T, dt)
+
+# Step current: 2 nA for 100 ms
+I_ext = np.zeros_like(time)
+I_ext[500:1500] = 2.0
+
+# Step 3: Simulate
+V = []  # Membrane potential
+spikes = []  # Spike times
+
+neuron.reset()  # Initialize neuron state
+for i, t in enumerate(time):
+    # Update neuron
+    fired = neuron.step(dt, I_ext[i])
+    
+    # Record
+    V.append(neuron.V)
+    if fired:
+        spikes.append(t)
+
+# Step 4: Visualize
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+
+# Voltage trace
+ax1.plot(time, V, 'b-', linewidth=1.5)
+ax1.axhline(neuron.V_th, color='r', linestyle='--', alpha=0.5, label='Threshold')
+for spike_t in spikes:
+    ax1.axvline(spike_t, color='r', alpha=0.3, linewidth=0.5)
+ax1.set_ylabel('Membrane Potential (mV)')
+ax1.set_title('Single LIF Neuron Simulation with Neun')
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+
+# Input current
+ax2.plot(time, I_ext, 'g-', linewidth=1.5)
+ax2.set_xlabel('Time (ms)')
+ax2.set_ylabel('Input Current (nA)')
+ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Print spike statistics
+if spikes:
+    print(f"Number of spikes: {len(spikes)}")
+    print(f"First spike at: {spikes[0]:.1f} ms")
+    print(f"Mean firing rate: {len(spikes) / (T/1000):.1f} Hz")
+    if len(spikes) > 1:
+        ISI = np.diff(spikes)
+        print(f"Mean ISI: {np.mean(ISI):.1f} ms")
+```
+
+::: {.callout-note}
+## Understanding the Workflow
+
+The basic Neun workflow consists of four steps:
+
+1. **Create** neurons/networks with desired parameters
+2. **Define** input patterns
+3. **Simulate** by stepping through time
+4. **Analyze** and visualize results
+:::
+
+## Exploring Neuron Models
+
+### Leaky Integrate-and-Fire (LIF)
+
+The simplest spiking neuron model:
+
+```python
+import neun
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Compare different leak conductances
+g_L_values = [0.05, 0.1, 0.2]
+colors = ['blue', 'green', 'red']
+
+fig, axes = plt.subplots(len(g_L_values), 1, figsize=(10, 8), sharex=True)
+
+dt = 0.1
+T = 200
+time = np.arange(0, T, dt)
+I_ext = np.zeros_like(time)
+I_ext[500:1500] = 1.5
+
+for idx, (g_L, color) in enumerate(zip(g_L_values, colors)):
+    # Create neuron
+    neuron = neun.LIFNeuron(
+        C_m=1.0,
+        g_L=g_L,
+        E_L=-70.0,
+        V_th=-50.0,
+        V_reset=-70.0
+    )
+    
+    # Simulate
+    V = []
+    neuron.reset()
+    for i, t in enumerate(time):
+        neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+    
+    # Plot
+    axes[idx].plot(time, V, color=color, linewidth=1.5)
+    axes[idx].axhline(neuron.V_th, color='r', linestyle='--', alpha=0.5)
+    axes[idx].set_ylabel('V (mV)')
+    axes[idx].set_title(f'g_L = {g_L} μS')
+    axes[idx].grid(True, alpha=0.3)
+
+axes[-1].set_xlabel('Time (ms)')
+plt.suptitle('Effect of Leak Conductance on LIF Neuron', y=1.02)
+plt.tight_layout()
+plt.show()
+```
+
+**Observation**: Higher leak conductance means:
+- Faster membrane time constant
+- More input current needed to reach threshold
+- Less integration of inputs
+
+### Izhikevich Neuron
+
+A more complex model that can reproduce various firing patterns:
+
+```python
+# Different Izhikevich neuron types
+neuron_types = {
+    'Regular Spiking': {'a': 0.02, 'b': 0.2, 'c': -65, 'd': 8},
+    'Fast Spiking': {'a': 0.1, 'b': 0.2, 'c': -65, 'd': 2},
+    'Bursting': {'a': 0.02, 'b': 0.2, 'c': -50, 'd': 2},
+    'Chattering': {'a': 0.02, 'b': 0.2, 'c': -50, 'd': 2}
+}
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+axes = axes.flatten()
+
+dt = 0.1
+T = 300
+time = np.arange(0, T, dt)
+
+for idx, (name, params) in enumerate(neuron_types.items()):
+    # Create neuron
+    neuron = neun.IzhikevichNeuron(**params)
+    
+    # Different input for chattering
+    I_ext = np.zeros_like(time)
+    if name == 'Chattering':
+        I_ext[500:2500] = 10.0
+    else:
+        I_ext[500:2500] = 10.0
+    
+    # Simulate
+    V = []
+    neuron.reset()
+    for i in range(len(time)):
+        neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+    
+    # Plot
+    axes[idx].plot(time, V, 'b-', linewidth=1)
+    axes[idx].set_title(name)
+    axes[idx].set_ylabel('V (mV)')
+    axes[idx].grid(True, alpha=0.3)
+    if idx >= 2:
+        axes[idx].set_xlabel('Time (ms)')
+
+plt.suptitle('Izhikevich Neuron: Different Firing Patterns', fontsize=14)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-important}
+## Choosing a Neuron Model
+
+- **LIF**: Fast, simple, good for large networks
+- **Izhikevich**: Captures many firing patterns, moderate complexity
+- **Hodgkin-Huxley**: Biophysically detailed, computationally expensive
+- **AdEx**: Good balance of detail and efficiency
+:::
+
+## Working with Populations
+
+Instead of individual neurons, we often work with populations:
+
+```python
+# Create a population of LIF neurons
+n_neurons = 10
+
+population = neun.Population(
+    n_neurons,
+    neuron_type=neun.LIFNeuron,
+    C_m=1.0,
+    g_L=0.1,
+    E_L=-70.0,
+    V_th=-50.0,
+    V_reset=-70.0
+)
+
+# Apply heterogeneous input
+dt = 0.1
+T = 200
+n_steps = int(T / dt)
+
+# Different input to each neuron
+I_ext = np.zeros((n_neurons, n_steps))
+for i in range(n_neurons):
+    I_ext[i, 500:1500] = 1.0 + 0.2 * i  # Increasing current
+
+# Simulate
+spikes = [[] for _ in range(n_neurons)]
+population.reset()
+
+for step in range(n_steps):
+    fired = population.step(dt, I_ext[:, step])
+    for neuron_idx in np.where(fired)[0]:
+        spikes[neuron_idx].append(step * dt)
+
+# Raster plot
+fig, ax = plt.subplots(figsize=(10, 6))
+
+for neuron_idx, spike_times in enumerate(spikes):
+    if spike_times:
+        ax.scatter(spike_times, [neuron_idx] * len(spike_times), 
+                  s=20, c='black', marker='|')
+
+ax.set_xlabel('Time (ms)')
+ax.set_ylabel('Neuron Index')
+ax.set_title('Population Activity: Raster Plot')
+ax.set_ylim(-0.5, n_neurons - 0.5)
+ax.grid(True, alpha=0.3, axis='x')
+plt.tight_layout()
+plt.show()
+
+# Firing rate histogram
+fig, ax = plt.subplots(figsize=(10, 4))
+firing_rates = [len(s) / (T/1000) for s in spikes]
+ax.bar(range(n_neurons), firing_rates, color='steelblue')
+ax.set_xlabel('Neuron Index')
+ax.set_ylabel('Firing Rate (Hz)')
+ax.set_title('Population Firing Rates')
+ax.grid(True, alpha=0.3, axis='y')
+plt.tight_layout()
+plt.show()
+```
+
+## Input Patterns
+
+Neun supports various input patterns:
+
+### Constant Current
+
+```python
+I_const = 2.0  # nA
+I_ext = np.ones(n_steps) * I_const
+```
+
+### Step Current
+
+```python
+I_ext = np.zeros(n_steps)
+I_ext[start:end] = amplitude
+```
+
+### Ramp Current
+
+```python
+I_ext = np.linspace(0, max_current, n_steps)
+```
+
+### Noisy Current
+
+```python
+I_base = 1.0
+sigma = 0.5
+I_ext = I_base + sigma * np.random.randn(n_steps)
+```
+
+### Sinusoidal Current
+
+```python
+frequency = 10  # Hz
+I_amplitude = 1.0
+I_offset = 1.5
+time = np.arange(0, T, dt)
+I_ext = I_offset + I_amplitude * np.sin(2 * np.pi * frequency * time / 1000)
+```
+
+### Pulse Train
+
+```python
+pulse_times = [50, 100, 150, 200]  # ms
+pulse_duration = 5  # ms
+pulse_amplitude = 3.0  # nA
+
+I_ext = np.zeros(n_steps)
+for t_pulse in pulse_times:
+    start_idx = int(t_pulse / dt)
+    end_idx = int((t_pulse + pulse_duration) / dt)
+    I_ext[start_idx:end_idx] = pulse_amplitude
+```
+
+## Recording and Analysis
+
+Neun provides tools for recording network activity:
+
+```python
+# Create a neuron with recording
+neuron = neun.LIFNeuron(
+    C_m=1.0, g_L=0.1, E_L=-70.0,
+    V_th=-50.0, V_reset=-70.0
+)
+
+# Set up recording
+recorder = neun.Recorder(neuron, variables=['V', 'I_syn'])
+
+# Simulate
+dt = 0.1
+T = 200
+time = np.arange(0, T, dt)
+I_ext = np.zeros_like(time)
+I_ext[500:1500] = 2.0
+
+neuron.reset()
+for i in range(len(time)):
+    neuron.step(dt, I_ext[i])
+    recorder.record()
+
+# Get recorded data
+data = recorder.get_data()
+
+# Plot multiple variables
+fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+
+axes[0].plot(time, data['V'], 'b-', linewidth=1.5)
+axes[0].set_ylabel('Membrane Potential (mV)')
+axes[0].grid(True, alpha=0.3)
+
+axes[1].plot(time, data['I_syn'], 'r-', linewidth=1.5)
+axes[1].set_ylabel('Synaptic Current (nA)')
+axes[1].set_xlabel('Time (ms)')
+axes[1].grid(True, alpha=0.3)
+
+plt.suptitle('Multi-variable Recording', fontsize=14)
+plt.tight_layout()
+plt.show()
+```
+
+## Parameter Exploration
+
+A key use of simulations is exploring parameter space:
+
+```python
+# F-I curve: firing rate vs input current
+currents = np.linspace(0.5, 3.0, 20)
+firing_rates = []
+
+dt = 0.1
+T = 1000  # Longer simulation for better rate estimate
+n_steps = int(T / dt)
+
+for I_amp in currents:
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0
+    )
+    
+    I_ext = np.ones(n_steps) * I_amp
+    
+    spike_count = 0
+    neuron.reset()
+    for step in range(n_steps):
+        if neuron.step(dt, I_ext[step]):
+            spike_count += 1
+    
+    firing_rates.append(spike_count / (T/1000))
+
+# Plot F-I curve
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.plot(currents, firing_rates, 'o-', linewidth=2, markersize=6)
+ax.set_xlabel('Input Current (nA)')
+ax.set_ylabel('Firing Rate (Hz)')
+ax.set_title('F-I Curve: LIF Neuron')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-tip}
+## Parameter Exploration Tips
+
+1. **Start with wide ranges** to understand overall behavior
+2. **Refine** around interesting regions
+3. **Vary one parameter at a time** initially
+4. **Use multiple metrics** (firing rate, CV of ISI, etc.)
+5. **Compare with experimental data** when available
+:::
+
+## Best Practices
+
+### 1. Organize Your Code
+
+```python
+# Good practice: organize simulation code
+def run_simulation(neuron_params, I_ext, dt=0.1):
+    """Run a single neuron simulation."""
+    T = len(I_ext) * dt
+    time = np.arange(0, T, dt)
+    
+    neuron = neun.LIFNeuron(**neuron_params)
+    V = []
+    spikes = []
+    
+    neuron.reset()
+    for i, t in enumerate(time):
+        fired = neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+        if fired:
+            spikes.append(t)
+    
+    return time, V, spikes
+
+# Use it
+params = {'C_m': 1.0, 'g_L': 0.1, 'E_L': -70.0, 
+          'V_th': -50.0, 'V_reset': -70.0}
+I = np.ones(2000) * 2.0
+time, V, spikes = run_simulation(params, I)
+```
+
+### 2. Document Parameters
+
+```python
+# Always document what parameters mean
+neuron_params = {
+    'C_m': 1.0,        # Membrane capacitance (nF)
+    'g_L': 0.1,        # Leak conductance (μS)  
+    'E_L': -70.0,      # Resting potential (mV)
+    'V_th': -50.0,     # Spike threshold (mV)
+    'V_reset': -70.0,  # Reset potential (mV)
+    'tau_ref': 2.0     # Refractory period (ms)
+}
+```
+
+### 3. Use Meaningful Variable Names
+
+```python
+# Good
+membrane_potential = neuron.V
+spike_times = [t for t, fired in zip(time, fired_array) if fired]
+
+# Avoid
+v = neuron.V
+st = [t for t, f in zip(time, fa) if f]
+```
+
+### 4. Save Important Results
+
+```python
+# Save results for later analysis
+import json
+
+results = {
+    'parameters': neuron_params,
+    'spike_times': spikes,
+    'firing_rate': len(spikes) / (T/1000)
+}
+
+with open('simulation_results.json', 'w') as f:
+    json.dump(results, f, indent=2)
+```
+
+## Common Patterns and Idioms
+
+### Running Multiple Trials
+
+```python
+n_trials = 10
+all_spikes = []
+
+for trial in range(n_trials):
+    # Add noise to input
+    I_ext = 2.0 + 0.5 * np.random.randn(n_steps)
+    
+    neuron = neun.LIFNeuron(**params)
+    spikes = []
+    
+    neuron.reset()
+    for i in range(n_steps):
+        if neuron.step(dt, I_ext[i]):
+            spikes.append(i * dt)
+    
+    all_spikes.append(spikes)
+
+# Analyze trial-to-trial variability
+firing_rates = [len(s) / (T/1000) for s in all_spikes]
+print(f"Mean firing rate: {np.mean(firing_rates):.2f} ± {np.std(firing_rates):.2f} Hz")
+```
+
+### Batch Processing
+
+```python
+# Test multiple parameter combinations
+param_grid = {
+    'g_L': [0.05, 0.1, 0.15, 0.2],
+    'V_th': [-55, -50, -45]
+}
+
+results = []
+for g_L in param_grid['g_L']:
+    for V_th in param_grid['V_th']:
+        params = {**neuron_params, 'g_L': g_L, 'V_th': V_th}
+        time, V, spikes = run_simulation(params, I_ext)
+        results.append({
+            'g_L': g_L,
+            'V_th': V_th,
+            'n_spikes': len(spikes)
+        })
+```
+
+## Summary
+
+In this section, we've learned:
+
+- ✅ How to install and set up Neun
+- ✅ Basic architecture and concepts
+- ✅ Creating and simulating single neurons
+- ✅ Working with populations
+- ✅ Various input patterns
+- ✅ Recording and analyzing results
+- ✅ Parameter exploration
+- ✅ Best practices for simulation code
+
+::: {.callout-note}
+## Key Takeaways
+
+1. **Neun workflow**: Create → Define inputs → Simulate → Analyze
+2. **Multiple neuron models**: Choose based on your needs
+3. **Populations**: Efficient way to simulate many neurons
+4. **Recording**: Essential for analysis
+5. **Organization**: Write clean, documented code
+:::
+
+## Exercises
+
+Try these exercises to solidify your understanding:
+
+1. **F-I Curve**: Create an F-I curve for an Izhikevich neuron
+2. **Noise Effects**: Compare firing patterns with different noise levels
+3. **Refractory Period**: Explore how refractory period affects maximum firing rate
+4. **Population Heterogeneity**: Create a population with heterogeneous parameters
+
+## Next Steps
+
+Now that you're familiar with Neun basics, we'll move on to:
+
+- Building more complex single neuron models
+- Creating connected networks
+- Implementing synaptic dynamics
+- Analyzing network behavior
+
+---
+
+👉 **Continue to [Part 3: Single Neuron Modeling](03-single-neurons.qmd)**

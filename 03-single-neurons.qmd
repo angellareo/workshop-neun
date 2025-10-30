@@ -1,0 +1,773 @@
+---
+title: "Part 3: Single Neuron Modeling"
+subtitle: "Deep Dive into Neuron Models with Neun"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+---
+
+## Introduction
+
+In this section, we'll explore single neuron models in depth, understanding their properties, behaviors, and how to use them effectively with Neun. While single neurons may seem simple, they exhibit rich dynamics that are essential for understanding network behavior.
+
+## The Leaky Integrate-and-Fire (LIF) Model
+
+### Review of the Model
+
+The LIF neuron is described by:
+
+$$
+C_m \frac{dV}{dt} = -g_L(V - E_L) + I(t)
+$$
+
+With spike condition: if $V \geq V_{th}$, then $V \to V_{reset}$
+
+### Implementing LIF in Neun
+
+```python
+import neun
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create a LIF neuron
+neuron = neun.LIFNeuron(
+    C_m=1.0,          # Membrane capacitance (nF)
+    g_L=0.1,          # Leak conductance (μS)
+    E_L=-70.0,        # Leak reversal (mV)
+    V_th=-50.0,       # Threshold (mV)
+    V_reset=-70.0,    # Reset value (mV)
+    tau_ref=2.0       # Refractory period (ms)
+)
+
+print(f"Membrane time constant: {neuron.C_m / neuron.g_L:.1f} ms")
+print(f"Resting potential: {neuron.E_L} mV")
+```
+
+### Response to Different Input Patterns
+
+#### Subthreshold Responses
+
+```python
+dt = 0.1
+T = 200
+time = np.arange(0, T, dt)
+
+# Three different subthreshold currents
+currents = [0.5, 1.0, 1.5]
+fig, axes = plt.subplots(len(currents), 1, figsize=(10, 8), sharex=True)
+
+for idx, I_amp in enumerate(currents):
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0
+    )
+    
+    I_ext = np.zeros_like(time)
+    I_ext[500:1500] = I_amp
+    
+    V = []
+    neuron.reset()
+    for i in range(len(time)):
+        neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+    
+    axes[idx].plot(time, V, 'b-', linewidth=1.5)
+    axes[idx].axhline(neuron.V_th, color='r', linestyle='--', alpha=0.5)
+    axes[idx].set_ylabel('V (mV)')
+    axes[idx].set_title(f'I = {I_amp} nA')
+    axes[idx].grid(True, alpha=0.3)
+
+axes[-1].set_xlabel('Time (ms)')
+plt.suptitle('Subthreshold Responses', fontsize=14)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-note}
+## Membrane Time Constant
+
+The time constant $\tau_m = C_m / g_L$ determines:
+
+- How quickly the neuron responds to inputs
+- The temporal integration window
+- Typical values: 10-50 ms for cortical neurons
+:::
+
+#### Spike Generation
+
+```python
+# Explore spike generation with increasing currents
+currents = np.linspace(1.5, 3.5, 5)
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+dt = 0.1
+T = 300
+time = np.arange(0, T, dt)
+
+for I_amp in currents:
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+    )
+    
+    I_ext = np.zeros_like(time)
+    I_ext[500:2500] = I_amp
+    
+    V = []
+    spikes = []
+    neuron.reset()
+    
+    for i, t in enumerate(time):
+        fired = neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+        if fired:
+            spikes.append(t)
+    
+    # Plot with offset for clarity
+    offset = currents[-1] - I_amp
+    ax.plot(time, np.array(V) + offset * 50, label=f'I = {I_amp:.1f} nA', linewidth=1.5)
+
+ax.set_xlabel('Time (ms)')
+ax.set_ylabel('Membrane Potential (mV) + offset')
+ax.set_title('Spike Generation at Different Input Currents')
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+### F-I Curve Analysis
+
+The relationship between input current and firing rate is fundamental:
+
+```python
+# Compute F-I curve
+I_values = np.linspace(0, 4, 50)
+firing_rates = []
+
+dt = 0.1
+T = 2000  # Long simulation for accurate rate
+n_steps = int(T / dt)
+
+for I_amp in I_values:
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+    )
+    
+    I_ext = np.ones(n_steps) * I_amp
+    
+    spike_count = 0
+    neuron.reset()
+    for step in range(n_steps):
+        if neuron.step(dt, I_ext[step]):
+            spike_count += 1
+    
+    firing_rates.append(spike_count / (T / 1000))
+
+# Plot
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.plot(I_values, firing_rates, 'o-', linewidth=2, markersize=4)
+ax.set_xlabel('Input Current (nA)', fontsize=12)
+ax.set_ylabel('Firing Rate (Hz)', fontsize=12)
+ax.set_title('F-I Curve: LIF Neuron', fontsize=14)
+ax.grid(True, alpha=0.3)
+
+# Find rheobase (minimum current for firing)
+rheobase_idx = np.where(np.array(firing_rates) > 0)[0][0]
+rheobase = I_values[rheobase_idx]
+ax.axvline(rheobase, color='r', linestyle='--', label=f'Rheobase = {rheobase:.2f} nA')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+print(f"Rheobase current: {rheobase:.2f} nA")
+print(f"Maximum firing rate: {max(firing_rates):.1f} Hz")
+```
+
+::: {.callout-tip}
+## Understanding F-I Curves
+
+The F-I curve tells us:
+
+- **Rheobase**: Minimum current for spiking
+- **Gain**: Slope of the curve (sensitivity to input)
+- **Saturation**: Maximum firing rate (limited by refr period)
+- **Linearity**: Linear for LIF, nonlinear for other models
+:::
+
+## The Izhikevich Model
+
+The Izhikevich model can reproduce many different firing patterns with just 4 parameters:
+
+$$
+\begin{aligned}
+\frac{dV}{dt} &= 0.04V^2 + 5V + 140 - u + I \\
+\frac{du}{dt} &= a(bV - u)
+\end{aligned}
+$$
+
+When $V \geq 30$ mV: $V \to c$, $u \to u + d$
+
+### Different Neuron Types
+
+```python
+# Dictionary of Izhikevich parameters for different cell types
+neuron_types = {
+    'Regular Spiking (RS)': {
+        'a': 0.02, 'b': 0.2, 'c': -65, 'd': 8,
+        'I_amp': 10, 'color': 'blue'
+    },
+    'Intrinsically Bursting (IB)': {
+        'a': 0.02, 'b': 0.2, 'c': -55, 'd': 4,
+        'I_amp': 10, 'color': 'green'
+    },
+    'Chattering (CH)': {
+        'a': 0.02, 'b': 0.2, 'c': -50, 'd': 2,
+        'I_amp': 10, 'color': 'red'
+    },
+    'Fast Spiking (FS)': {
+        'a': 0.1, 'b': 0.2, 'c': -65, 'd': 2,
+        'I_amp': 10, 'color': 'purple'
+    },
+    'Low-Threshold Spiking (LTS)': {
+        'a': 0.02, 'b': 0.25, 'c': -65, 'd': 2,
+        'I_amp': 10, 'color': 'orange'
+    },
+    'Resonator (RZ)': {
+        'a': 0.1, 'b': 0.26, 'c': -65, 'd': 2,
+        'I_amp': 3.5, 'color': 'brown'
+    }
+}
+
+# Simulate and plot
+fig, axes = plt.subplots(3, 2, figsize=(14, 10))
+axes = axes.flatten()
+
+dt = 0.1
+T = 400
+time = np.arange(0, T, dt)
+
+for idx, (name, params) in enumerate(neuron_types.items()):
+    neuron = neun.IzhikevichNeuron(
+        a=params['a'], b=params['b'],
+        c=params['c'], d=params['d']
+    )
+    
+    I_ext = np.zeros_like(time)
+    I_ext[500:3500] = params['I_amp']
+    
+    V = []
+    neuron.reset()
+    for i in range(len(time)):
+        neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+    
+    axes[idx].plot(time, V, color=params['color'], linewidth=1.5)
+    axes[idx].set_title(name, fontsize=11)
+    axes[idx].set_ylabel('V (mV)')
+    axes[idx].grid(True, alpha=0.3)
+    axes[idx].set_ylim([-90, 40])
+    
+    if idx >= 4:
+        axes[idx].set_xlabel('Time (ms)')
+
+plt.suptitle('Izhikevich Model: Different Neuron Types', fontsize=14, y=1.00)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-important}
+## Choosing Parameters
+
+Izhikevich parameters:
+
+- **a**: Recovery time scale (0.01-0.1)
+- **b**: Sensitivity of u to V (0.2-0.25)
+- **c**: Reset voltage (-65 to -50 mV)
+- **d**: Reset shift of u (2-8)
+
+Different combinations produce different firing patterns!
+:::
+
+### Response to Synaptic-like Input
+
+```python
+# Simulate response to alpha-function input (like a synaptic event)
+dt = 0.1
+T = 200
+time = np.arange(0, T, dt)
+
+# Alpha function: I(t) = t * exp(-t/tau)
+tau_syn = 5.0  # ms
+t_onset = 50   # ms
+I_max = 30     # nA
+
+I_ext = np.zeros_like(time)
+for i, t in enumerate(time):
+    if t >= t_onset:
+        t_rel = t - t_onset
+        I_ext[i] = I_max * (t_rel / tau_syn) * np.exp(1 - t_rel / tau_syn)
+
+# Test with RS and FS neurons
+fig, axes = plt.subplots(3, 1, figsize=(10, 9), sharex=True)
+
+for neuron_type, ax in zip(['RS', 'FS'], axes[:2]):
+    if neuron_type == 'RS':
+        params = {'a': 0.02, 'b': 0.2, 'c': -65, 'd': 8}
+        color = 'blue'
+    else:
+        params = {'a': 0.1, 'b': 0.2, 'c': -65, 'd': 2}
+        color = 'purple'
+    
+    neuron = neun.IzhikevichNeuron(**params)
+    
+    V = []
+    neuron.reset()
+    for i in range(len(time)):
+        neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+    
+    ax.plot(time, V, color=color, linewidth=1.5)
+    ax.set_ylabel('V (mV)')
+    ax.set_title(f'{neuron_type} Neuron')
+    ax.grid(True, alpha=0.3)
+
+axes[2].plot(time, I_ext, 'g-', linewidth=1.5)
+axes[2].set_xlabel('Time (ms)')
+axes[2].set_ylabel('Input (nA)')
+axes[2].set_title('Synaptic-like Input')
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Adaptive Neurons
+
+Many neurons show adaptation: their firing rate decreases over time even with constant input.
+
+### Spike-Frequency Adaptation
+
+```python
+# Compare non-adaptive (LIF) vs adaptive neuron
+dt = 0.1
+T = 500
+time = np.arange(0, T, dt)
+
+# Constant input
+I_ext = np.zeros_like(time)
+I_ext[500:] = 2.5
+
+# Non-adaptive LIF
+lif = neun.LIFNeuron(
+    C_m=1.0, g_L=0.1, E_L=-70.0,
+    V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+)
+
+V_lif = []
+spikes_lif = []
+lif.reset()
+
+for i, t in enumerate(time):
+    fired = lif.step(dt, I_ext[i])
+    V_lif.append(lif.V)
+    if fired:
+        spikes_lif.append(t)
+
+# Adaptive neuron (Izhikevich with adaptation)
+adex = neun.IzhikevichNeuron(a=0.01, b=0.2, c=-65, d=8)
+
+V_adex = []
+spikes_adex = []
+adex.reset()
+
+for i, t in enumerate(time):
+    fired = adex.step(dt, I_ext[i] * 3)  # Scale for comparison
+    V_adex.append(adex.V)
+    if fired:
+        spikes_adex.append(t)
+
+# Plot spike rasters
+fig, axes = plt.subplots(3, 1, figsize=(12, 8), sharex=True)
+
+# Non-adaptive
+axes[0].scatter(spikes_lif, [0] * len(spikes_lif), s=50, c='blue', marker='|')
+axes[0].set_ylabel('LIF')
+axes[0].set_ylim([-0.5, 0.5])
+axes[0].set_title('Non-Adaptive Neuron')
+axes[0].set_yticks([])
+
+# Adaptive
+axes[1].scatter(spikes_adex, [0] * len(spikes_adex), s=50, c='red', marker='|')
+axes[1].set_ylabel('Adaptive')
+axes[1].set_ylim([-0.5, 0.5])
+axes[1].set_title('Adaptive Neuron')
+axes[1].set_yticks([])
+
+# Input
+axes[2].plot(time, I_ext, 'g-', linewidth=2)
+axes[2].set_xlabel('Time (ms)')
+axes[2].set_ylabel('Input (nA)')
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Compute instantaneous firing rates
+def compute_inst_rate(spikes, window=50, dt=0.1):
+    """Compute instantaneous firing rate."""
+    T = spikes[-1] if spikes else 0
+    time = np.arange(0, T + window, dt)
+    rate = np.zeros_like(time)
+    
+    for i, t in enumerate(time):
+        count = sum(1 for s in spikes if t - window < s <= t)
+        rate[i] = count / (window / 1000)  # Hz
+    
+    return time, rate
+
+if spikes_lif and spikes_adex:
+    time_lif, rate_lif = compute_inst_rate(spikes_lif)
+    time_adex, rate_adex = compute_inst_rate(spikes_adex)
+    
+    fig, ax = plt.subplots(figsize=(12, 5))
+    ax.plot(time_lif, rate_lif, 'b-', linewidth=2, label='Non-adaptive', alpha=0.7)
+    ax.plot(time_adex, rate_adex, 'r-', linewidth=2, label='Adaptive', alpha=0.7)
+    ax.set_xlabel('Time (ms)')
+    ax.set_ylabel('Firing Rate (Hz)')
+    ax.set_title('Spike-Frequency Adaptation')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+```
+
+::: {.callout-note}
+## Biological Significance
+
+Adaptation allows neurons to:
+
+- Adjust sensitivity to stimulus statistics
+- Encode changes rather than absolute values
+- Reduce metabolic cost
+- Prevent saturation
+:::
+
+## Noise and Variability
+
+Real neurons operate in noisy environments. Let's explore how noise affects spiking:
+
+### Noisy Input Current
+
+```python
+# Compare responses to clean vs noisy input
+dt = 0.1
+T = 500
+time = np.arange(0, T, dt)
+
+# Base current just below threshold
+I_base = 1.8
+noise_levels = [0, 0.5, 1.0]
+
+fig, axes = plt.subplots(len(noise_levels), 1, figsize=(12, 9), sharex=True)
+
+for idx, sigma in enumerate(noise_levels):
+    # Generate noisy current
+    I_ext = I_base + sigma * np.random.randn(len(time))
+    
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+    )
+    
+    V = []
+    spikes = []
+    neuron.reset()
+    
+    for i, t in enumerate(time):
+        fired = neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+        if fired:
+            spikes.append(t)
+    
+    axes[idx].plot(time, V, 'b-', linewidth=1, alpha=0.8)
+    axes[idx].axhline(neuron.V_th, color='r', linestyle='--', alpha=0.5)
+    for spike_t in spikes:
+        axes[idx].axvline(spike_t, color='r', alpha=0.2, linewidth=0.5)
+    
+    axes[idx].set_ylabel('V (mV)')
+    axes[idx].set_title(f'Noise SD = {sigma} nA ({len(spikes)} spikes)')
+    axes[idx].grid(True, alpha=0.3)
+
+axes[-1].set_xlabel('Time (ms)')
+plt.suptitle('Effect of Input Noise on Spiking', fontsize=14)
+plt.tight_layout()
+plt.show()
+```
+
+### Coefficient of Variation (CV) of ISI
+
+The CV quantifies spike time variability:
+
+```python
+# Analyze spike time variability
+n_trials = 20
+I_base = 2.0
+sigma = 0.8
+
+dt = 0.1
+T = 2000
+n_steps = int(T / dt)
+
+all_ISI = []
+
+for trial in range(n_trials):
+    I_ext = I_base + sigma * np.random.randn(n_steps)
+    
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+    )
+    
+    spikes = []
+    neuron.reset()
+    
+    for step in range(n_steps):
+        if neuron.step(dt, I_ext[step]):
+            spikes.append(step * dt)
+    
+    if len(spikes) > 1:
+        ISI = np.diff(spikes)
+        all_ISI.extend(ISI)
+
+# Compute CV
+all_ISI = np.array(all_ISI)
+CV = np.std(all_ISI) / np.mean(all_ISI)
+
+# Plot ISI distribution
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+ax1.hist(all_ISI, bins=30, density=True, alpha=0.7, edgecolor='black')
+ax1.axvline(np.mean(all_ISI), color='r', linestyle='--', 
+            linewidth=2, label=f'Mean = {np.mean(all_ISI):.1f} ms')
+ax1.set_xlabel('ISI (ms)')
+ax1.set_ylabel('Probability Density')
+ax1.set_title(f'ISI Distribution (CV = {CV:.2f})')
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+
+# CV interpretation
+ax2.text(0.5, 0.6, f'Coefficient of Variation\nCV = {CV:.2f}', 
+         ha='center', va='center', fontsize=16,
+         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+ax2.text(0.5, 0.3, 
+         'CV < 0.5: Regular\n0.5 < CV < 1: Irregular\nCV > 1: Bursty',
+         ha='center', va='center', fontsize=12)
+ax2.set_xlim([0, 1])
+ax2.set_ylim([0, 1])
+ax2.axis('off')
+
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-tip}
+## Interpreting CV
+
+- **CV ≈ 0**: Regular, clock-like firing
+- **CV ≈ 0.5-1**: Irregular, Poisson-like firing (typical in cortex)
+- **CV > 1**: Highly variable, often bursting
+:::
+
+## Frequency Response
+
+How do neurons respond to oscillatory inputs? This relates to the frequency-dependent responses discussed in Part 1.
+
+```python
+# Test neuron response to sinusoidal inputs at different frequencies
+frequencies = [5, 10, 20, 50]  # Hz
+I_amp = 1.0
+I_offset = 2.0
+
+dt = 0.1
+T = 1000
+time = np.arange(0, T, dt)
+
+fig, axes = plt.subplots(len(frequencies), 1, figsize=(12, 10), sharex=True)
+
+for idx, freq in enumerate(frequencies):
+    # Sinusoidal input
+    I_ext = I_offset + I_amp * np.sin(2 * np.pi * freq * time / 1000)
+    
+    neuron = neun.LIFNeuron(
+        C_m=1.0, g_L=0.1, E_L=-70.0,
+        V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+    )
+    
+    V = []
+    spikes = []
+    neuron.reset()
+    
+    for i, t in enumerate(time):
+        fired = neuron.step(dt, I_ext[i])
+        V.append(neuron.V)
+        if fired:
+            spikes.append(t)
+    
+    # Plot voltage and mark spikes
+    axes[idx].plot(time, V, 'b-', linewidth=1, alpha=0.6)
+    axes[idx].axhline(neuron.V_th, color='gray', linestyle='--', alpha=0.3)
+    
+    # Mark spikes
+    for spike_t in spikes:
+        axes[idx].plot(spike_t, neuron.V_th + 5, 'rv', markersize=4)
+    
+    axes[idx].set_ylabel('V (mV)')
+    axes[idx].set_title(f'Input: {freq} Hz ({len(spikes)} spikes)')
+    axes[idx].grid(True, alpha=0.3)
+    axes[idx].set_ylim([-75, -45])
+
+axes[-1].set_xlabel('Time (ms)')
+plt.suptitle('Neuron Response to Oscillatory Inputs', fontsize=14)
+plt.tight_layout()
+plt.show()
+```
+
+## Phase Response Curves (PRC)
+
+The PRC characterizes how perturbations affect spike timing—crucial for understanding synchronization.
+
+```python
+# Simplified PRC computation
+def compute_PRC(neuron_params, I_base, perturbation=0.5):
+    """Compute phase response curve."""
+    dt = 0.1
+    T = 500
+    
+    # Find natural period
+    neuron = neun.LIFNeuron(**neuron_params)
+    I_ext = np.ones(int(T/dt)) * I_base
+    
+    spikes = []
+    neuron.reset()
+    for step in range(len(I_ext)):
+        if neuron.step(dt, I_ext[step]):
+            spikes.append(step * dt)
+    
+    if len(spikes) < 2:
+        return None, None
+    
+    T0 = np.mean(np.diff(spikes))  # Natural period
+    
+    # Test perturbations at different phases
+    phases = np.linspace(0, 1, 20)
+    phase_shifts = []
+    
+    for phase in phases:
+        neuron = neun.LIFNeuron(**neuron_params)
+        neuron.reset()
+        
+        # Run until first spike
+        t = 0
+        while t < 1000:
+            if neuron.step(dt, I_base):
+                break
+            t += dt
+        
+        # Wait for desired phase
+        t_wait = phase * T0
+        t = 0
+        while t < t_wait:
+            neuron.step(dt, I_base)
+            t += dt
+        
+        # Apply perturbation
+        neuron.step(dt, I_base + perturbation)
+        
+        # Find next spike
+        t_pert = t
+        t = 0
+        while t < T0 * 2:
+            if neuron.step(dt, I_base):
+                t_next = t
+                break
+            t += dt
+        else:
+            t_next = T0
+        
+        # Phase shift
+        shift = (t_next - (T0 - t_wait)) / T0
+        phase_shifts.append(shift)
+    
+    return phases, phase_shifts
+
+# Compute and plot PRC
+params = {'C_m': 1.0, 'g_L': 0.1, 'E_L': -70.0,
+          'V_th': -50.0, 'V_reset': -70.0, 'tau_ref': 2.0}
+
+phases, shifts = compute_PRC(params, I_base=2.5)
+
+if phases is not None:
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(phases, shifts, 'o-', linewidth=2, markersize=6)
+    ax.axhline(0, color='gray', linestyle='--', alpha=0.5)
+    ax.set_xlabel('Phase (fraction of period)', fontsize=12)
+    ax.set_ylabel('Phase Shift', fontsize=12)
+    ax.set_title('Phase Response Curve (PRC)', fontsize=14)
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+```
+
+::: {.callout-important}
+## PRC Applications
+
+PRCs are essential for understanding:
+
+- **Synchronization**: How neurons lock to common rhythms
+- **Network oscillations**: Emergence of population activity
+- **Sensitivity to timing**: When inputs have maximal effect
+- **Resonance**: Preferred input frequencies
+:::
+
+## Summary
+
+In this section, we explored:
+
+- ✅ LIF model in detail: subthreshold responses, F-I curves
+- ✅ Izhikevich model: diverse firing patterns
+- ✅ Adaptation mechanisms
+- ✅ Effects of noise on spiking
+- ✅ Frequency responses
+- ✅ Phase response curves
+
+::: {.callout-note}
+## Key Insights
+
+1. **Model choice matters**: Different models for different questions
+2. **F-I curves**: Fundamental input-output relationship
+3. **Adaptation**: Dynamic sensitivity adjustment
+4. **Noise**: Introduces variability, can be functional
+5. **Frequency tuning**: Neurons filter temporal information
+6. **PRCs**: Predict synchronization and timing effects
+:::
+
+## Exercises
+
+1. **Explore parameter space**: How does varying τ_ref affect maximum firing rate?
+2. **Create custom neuron**: Combine LIF with exponential adaptation
+3. **Resonance**: Find the frequency at which a neuron responds most strongly
+4. **Stochastic resonance**: Can noise improve signal detection?
+
+## Next Steps
+
+Now we're ready to connect neurons into networks!
+
+---
+
+👉 **Continue to [Part 4: Neural Networks](04-neural-networks.qmd)**

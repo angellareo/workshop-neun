@@ -1,0 +1,769 @@
+---
+title: "Part 5: Advanced Topics"
+subtitle: "Plasticity, Complex Dynamics, and Real-World Applications"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+---
+
+## Introduction
+
+In this final section, we'll explore advanced topics in computational neuroscience including synaptic plasticity, complex network dynamics, and applications to real neuroscience problems.
+
+## Synaptic Plasticity
+
+Synapses aren't static—they change based on activity. This plasticity underlies learning and memory.
+
+### Spike-Timing-Dependent Plasticity (STDP)
+
+STDP adjusts synaptic strength based on the relative timing of pre- and post-synaptic spikes:
+
+- **Pre before post** (Δt > 0): Potentiation (strengthening)
+- **Post before pre** (Δt < 0): Depression (weakening)
+
+```python
+import neun
+import numpy as np
+import matplotlib.pyplot as plt
+
+# STDP learning rule parameters
+tau_plus = 20.0   # Time constant for potentiation (ms)
+tau_minus = 20.0  # Time constant for depression (ms)
+A_plus = 0.01     # Maximum potentiation
+A_minus = 0.01    # Maximum depression
+
+def stdp_window(dt):
+    """STDP learning window."""
+    if dt > 0:
+        return A_plus * np.exp(-dt / tau_plus)
+    else:
+        return -A_minus * np.exp(dt / tau_minus)
+
+# Plot STDP window
+dt_range = np.linspace(-100, 100, 200)
+dw = [stdp_window(dt) for dt in dt_range]
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.plot(dt_range, dw, 'b-', linewidth=2)
+ax.axhline(0, color='gray', linestyle='--', alpha=0.5)
+ax.axvline(0, color='gray', linestyle='--', alpha=0.5)
+ax.set_xlabel('Δt = t_post - t_pre (ms)', fontsize=12)
+ax.set_ylabel('Weight Change (Δw)', fontsize=12)
+ax.set_title('STDP Learning Window', fontsize=14)
+ax.grid(True, alpha=0.3)
+ax.text(30, A_plus*0.6, 'LTP\n(Potentiation)', fontsize=11, ha='center')
+ax.text(-30, -A_minus*0.6, 'LTD\n(Depression)', fontsize=11, ha='center')
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-note}
+## STDP Principles
+
+- **Causality**: Strengthens synapses that contributed to firing
+- **Locality**: Depends only on local spike timing
+- **Asymmetry**: Direction matters (pre→post vs post→pre)
+- **Temporal window**: Effective within ~50-100 ms
+:::
+
+### Implementing STDP
+
+```python
+class STDPSynapse:
+    """Simple STDP synapse implementation."""
+    
+    def __init__(self, n_pre, n_post, w_init=0.5, w_max=1.0):
+        self.n_pre = n_pre
+        self.n_post = n_post
+        self.w = np.ones((n_post, n_pre)) * w_init
+        self.w_max = w_max
+        
+        # STDP parameters
+        self.A_plus = 0.01
+        self.A_minus = 0.01
+        self.tau_plus = 20.0
+        self.tau_minus = 20.0
+        
+        # Spike traces
+        self.trace_pre = np.zeros(n_pre)
+        self.trace_post = np.zeros(n_post)
+        self.tau_trace = 20.0
+    
+    def update_traces(self, dt, spikes_pre, spikes_post):
+        """Update spike traces and apply STDP."""
+        # Decay traces
+        self.trace_pre *= np.exp(-dt / self.tau_trace)
+        self.trace_post *= np.exp(-dt / self.tau_trace)
+        
+        # Apply STDP when spikes occur
+        if np.any(spikes_post):
+            # LTD: post spike depresses recently active pre synapses
+            for post_idx in np.where(spikes_post)[0]:
+                self.w[post_idx, :] -= self.A_minus * self.trace_pre
+        
+        if np.any(spikes_pre):
+            # LTP: pre spike potentiates recently active post synapses
+            for pre_idx in np.where(spikes_pre)[0]:
+                self.w[:, pre_idx] += self.A_plus * self.trace_post
+        
+        # Add new spikes to traces
+        self.trace_pre[spikes_pre] = 1.0
+        self.trace_post[spikes_post] = 1.0
+        
+        # Bound weights
+        self.w = np.clip(self.w, 0, self.w_max)
+    
+    def get_current(self, spikes_pre, V_post):
+        """Compute synaptic current."""
+        # Simplified: instantaneous transmission
+        I_syn = np.dot(self.w, spikes_pre.astype(float))
+        return I_syn
+
+# Example: STDP learning in a simple network
+n_pre = 10
+n_post = 5
+
+stdp_syn = STDPSynapse(n_pre, n_post, w_init=0.3)
+
+# Create pre and post populations
+pre_neurons = neun.Population(
+    n_pre,
+    neuron_type=neun.LIFNeuron,
+    C_m=1.0, g_L=0.1, E_L=-70.0,
+    V_th=-50.0, V_reset=-70.0
+)
+
+post_neurons = neun.Population(
+    n_post,
+    neuron_type=neun.LIFNeuron,
+    C_m=1.0, g_L=0.1, E_L=-70.0,
+    V_th=-50.0, V_reset=-70.0
+)
+
+# Training protocol: present patterns
+dt = 0.1
+T = 5000
+n_steps = int(T / dt)
+
+# Pattern: specific pre neurons fire, followed by post
+pattern_times = np.arange(100, T, 200)
+pattern_pre = [0, 2, 5]  # These pre neurons
+pattern_post = [1, 3]     # Should drive these post neurons
+
+# Record initial and final weights
+w_initial = stdp_syn.w.copy()
+
+# Simulate
+pre_neurons.reset()
+post_neurons.reset()
+
+for step in range(n_steps):
+    t = step * dt
+    
+    # External input for pattern presentation
+    I_pre = np.zeros(n_pre)
+    I_post = np.zeros(n_post)
+    
+    # Present pattern
+    for t_pattern in pattern_times:
+        if abs(t - t_pattern) < 5:  # Pre neurons fire
+            I_pre[pattern_pre] = 5.0
+        if abs(t - (t_pattern + 10)) < 5:  # Post neurons fire 10ms later
+            I_post[pattern_post] = 3.0
+    
+    # Step neurons
+    spikes_pre = pre_neurons.step(dt, I_pre)
+    
+    # Synaptic input to post
+    I_syn = stdp_syn.get_current(spikes_pre, post_neurons.V)
+    
+    spikes_post = post_neurons.step(dt, I_post + I_syn)
+    
+    # Update STDP
+    stdp_syn.update_traces(dt, spikes_pre, spikes_post)
+
+w_final = stdp_syn.w.copy()
+
+# Visualize weight changes
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 4))
+
+im1 = ax1.imshow(w_initial, aspect='auto', cmap='viridis', vmin=0, vmax=1)
+ax1.set_title('Initial Weights')
+ax1.set_xlabel('Pre Neuron')
+ax1.set_ylabel('Post Neuron')
+plt.colorbar(im1, ax=ax1)
+
+im2 = ax2.imshow(w_final, aspect='auto', cmap='viridis', vmin=0, vmax=1)
+ax2.set_title('Final Weights (After STDP)')
+ax2.set_xlabel('Pre Neuron')
+ax2.set_ylabel('Post Neuron')
+plt.colorbar(im2, ax=ax2)
+
+im3 = ax3.imshow(w_final - w_initial, aspect='auto', cmap='RdBu', vmin=-0.3, vmax=0.3)
+ax3.set_title('Weight Change')
+ax3.set_xlabel('Pre Neuron')
+ax3.set_ylabel('Post Neuron')
+plt.colorbar(im3, ax=ax3, label='Δw')
+
+plt.tight_layout()
+plt.show()
+
+print("Weight changes for trained connections:")
+for post_idx in pattern_post:
+    for pre_idx in pattern_pre:
+        dw = w_final[post_idx, pre_idx] - w_initial[post_idx, pre_idx]
+        print(f"  Pre {pre_idx} → Post {post_idx}: {dw:+.3f}")
+```
+
+::: {.callout-tip}
+## STDP Applications
+
+- **Sequence learning**: Learn temporal sequences
+- **Feature selectivity**: Develop receptive fields
+- **Synchrony**: Promote synchronous assemblies
+- **Pruning**: Remove unused connections
+:::
+
+## Heterogeneous Networks
+
+Real neural populations are diverse. Let's explore heterogeneity:
+
+```python
+# Create heterogeneous network
+N = 100
+
+# Draw parameters from distributions
+C_m_values = np.random.gamma(shape=4, scale=0.25, size=N)
+g_L_values = np.random.gamma(shape=4, scale=0.025, size=N)
+V_th_values = np.random.normal(loc=-50, scale=2, size=N)
+
+# Create neurons with heterogeneous parameters
+neurons = []
+for i in range(N):
+    neuron = neun.LIFNeuron(
+        C_m=C_m_values[i],
+        g_L=g_L_values[i],
+        E_L=-70.0,
+        V_th=V_th_values[i],
+        V_reset=-70.0
+    )
+    neurons.append(neuron)
+
+# Simulate with same input
+dt = 0.1
+T = 500
+time = np.arange(0, T, dt)
+I_ext = 2.0  # Constant input
+
+spike_times_het = [[] for _ in range(N)]
+
+for neuron_idx, neuron in enumerate(neurons):
+    neuron.reset()
+    for i, t in enumerate(time):
+        if neuron.step(dt, I_ext):
+            spike_times_het[neuron_idx].append(t)
+
+# Compute firing rates
+firing_rates_het = [len(spikes) / (T / 1000) for spikes in spike_times_het]
+
+# Plot heterogeneity effects
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# Raster plot
+for idx in range(N):
+    if spike_times_het[idx]:
+        axes[0, 0].scatter(spike_times_het[idx], [idx] * len(spike_times_het[idx]),
+                          s=1, c='blue', marker='|', alpha=0.5)
+axes[0, 0].set_ylabel('Neuron Index')
+axes[0, 0].set_xlabel('Time (ms)')
+axes[0, 0].set_title('Heterogeneous Population Activity')
+
+# Firing rate distribution
+axes[0, 1].hist(firing_rates_het, bins=20, edgecolor='black', alpha=0.7)
+axes[0, 1].set_xlabel('Firing Rate (Hz)')
+axes[0, 1].set_ylabel('Count')
+axes[0, 1].set_title('Firing Rate Distribution')
+axes[0, 1].axvline(np.mean(firing_rates_het), color='r', 
+                   linestyle='--', label=f'Mean = {np.mean(firing_rates_het):.1f} Hz')
+axes[0, 1].legend()
+
+# Parameter distributions
+axes[1, 0].hist(C_m_values, bins=20, alpha=0.7, edgecolor='black')
+axes[1, 0].set_xlabel('Membrane Capacitance (nF)')
+axes[1, 0].set_ylabel('Count')
+axes[1, 0].set_title('Parameter Heterogeneity: C_m')
+
+axes[1, 1].hist(V_th_values, bins=20, alpha=0.7, edgecolor='black')
+axes[1, 1].set_xlabel('Threshold (mV)')
+axes[1, 1].set_ylabel('Count')
+axes[1, 1].set_title('Parameter Heterogeneity: V_th')
+
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-important}
+## Why Heterogeneity Matters
+
+1. **Biological realism**: Real neurons vary
+2. **Robustness**: Diversity can improve stability
+3. **Dynamic range**: Broader input encoding
+4. **Irregular firing**: More realistic spike patterns
+:::
+
+## Modeling Specific Brain Regions
+
+### Example: Simplified Cortical Microcircuit
+
+Based on cortical column architecture:
+
+```python
+# Cortical microcircuit layers
+layer_sizes = {
+    'L2/3_E': 40,
+    'L2/3_I': 10,
+    'L4_E': 30,
+    'L4_I': 8,
+    'L5_E': 35,
+    'L5_I': 9
+}
+
+# Create populations
+populations = {}
+for layer_name, size in layer_sizes.items():
+    is_inhibitory = 'I' in layer_name
+    
+    if is_inhibitory:
+        # Fast-spiking inhibitory
+        pop = neun.Population(
+            size,
+            neuron_type=neun.LIFNeuron,
+            C_m=0.5, g_L=0.1, E_L=-70.0,
+            V_th=-50.0, V_reset=-65.0, tau_ref=1.0
+        )
+    else:
+        # Regular-spiking excitatory
+        pop = neun.Population(
+            size,
+            neuron_type=neun.LIFNeuron,
+            C_m=1.0, g_L=0.1, E_L=-70.0,
+            V_th=-50.0, V_reset=-70.0, tau_ref=2.0
+        )
+    
+    populations[layer_name] = pop
+
+print("Cortical microcircuit created:")
+for name, pop in populations.items():
+    print(f"  {name}: {pop.size} neurons")
+
+# Connection probabilities (simplified from Potjans & Diesmann, 2014)
+connections = [
+    ('L4_E', 'L2/3_E', 0.15),
+    ('L4_E', 'L2/3_I', 0.10),
+    ('L2/3_E', 'L5_E', 0.05),
+    ('L2/3_I', 'L2/3_E', 0.20),
+    ('L4_I', 'L4_E', 0.25),
+    ('L5_I', 'L5_E', 0.20),
+]
+
+# Create synapses (simplified)
+synapses_cortex = []
+for pre_name, post_name, p_conn in connections:
+    is_inhibitory = 'I' in pre_name
+    
+    if is_inhibitory:
+        g_syn = 0.05
+        E_syn = -80.0
+        tau_syn = 8.0
+    else:
+        g_syn = 0.02
+        E_syn = 0.0
+        tau_syn = 5.0
+    
+    syn = neun.ExponentialSynapse(
+        pre_pop=populations[pre_name],
+        post_pop=populations[post_name],
+        g_syn=g_syn,
+        E_syn=E_syn,
+        tau_syn=tau_syn,
+        p=p_conn
+    )
+    synapses_cortex.append(syn)
+
+print(f"\nCreated {len(synapses_cortex)} connection types")
+```
+
+## Frequency-Dependent Processing
+
+Relating to the research of Garrido-Peña et al. (2014), let's explore frequency filtering:
+
+```python
+# Test network response to inputs at different frequencies
+def test_frequency_response(network, frequencies, amplitude=1.0):
+    """Test network response to sinusoidal inputs."""
+    dt = 0.1
+    T = 2000
+    time = np.arange(0, T, dt)
+    
+    responses = []
+    
+    for freq in frequencies:
+        # Sinusoidal input
+        I_ext = amplitude * (1 + np.sin(2 * np.pi * freq * time / 1000))
+        
+        # Apply to subset of neurons
+        I_ext_full = np.zeros((network.n_neurons, len(time)))
+        I_ext_full[:20, :] = I_ext
+        
+        # Simulate
+        spike_times = [[] for _ in range(network.n_neurons)]
+        network.reset()
+        
+        for step in range(len(time)):
+            fired = network.step(dt, I_ext_full[:, step])
+            for neuron_idx in np.where(fired)[0]:
+                spike_times[neuron_idx].append(time[step])
+        
+        # Compute population response
+        _, rate = compute_population_rate(spike_times, T, dt, window=50)
+        
+        # Measure response amplitude at input frequency
+        from scipy.fft import rfft, rfftfreq
+        
+        fft_rate = np.abs(rfft(rate - np.mean(rate)))
+        fft_freqs = rfftfreq(len(rate), dt / 1000)
+        
+        # Find response at input frequency
+        freq_idx = np.argmin(np.abs(fft_freqs - freq))
+        response_amp = fft_rate[freq_idx]
+        
+        responses.append(response_amp)
+    
+    return responses
+
+# Test with E-I network
+frequencies_test = [2, 5, 10, 20, 40, 60, 80, 100]
+
+# (Assuming we have a network from previous sections)
+# responses = test_frequency_response(network, frequencies_test)
+
+# Plot frequency response curve
+# fig, ax = plt.subplots(figsize=(10, 6))
+# ax.plot(frequencies_test, responses, 'o-', linewidth=2, markersize=8)
+# ax.set_xlabel('Input Frequency (Hz)', fontsize=12)
+# ax.set_ylabel('Response Amplitude', fontsize=12)
+# ax.set_title('Network Frequency Response', fontsize=14)
+# ax.grid(True, alpha=0.3)
+# ax.set_xscale('log')
+# plt.tight_layout()
+# plt.show()
+```
+
+::: {.callout-note}
+## Frequency Filtering in Neural Circuits
+
+As demonstrated by Garrido-Peña et al. (2014):
+
+- Different brain regions have different frequency preferences
+- Circuit architecture determines filtering properties
+- Synaptic time constants shape frequency response
+- Computational models help interpret experimental measurements
+:::
+
+## Connecting to Experimental Data
+
+### Fitting Models to Data
+
+```python
+def fit_neuron_model(spike_times_data, I_applied, dt=0.1):
+    """
+    Simple parameter fitting example.
+    In practice, use sophisticated optimization methods.
+    """
+    from scipy.optimize import differential_evolution
+    
+    def objective(params):
+        """Objective function: match spike count and pattern."""
+        C_m, g_L, V_th = params
+        
+        # Create neuron with these parameters
+        neuron = neun.LIFNeuron(
+            C_m=C_m, g_L=g_L, E_L=-70.0,
+            V_th=V_th, V_reset=-70.0, tau_ref=2.0
+        )
+        
+        # Simulate
+        spike_times_model = []
+        neuron.reset()
+        
+        for i, I in enumerate(I_applied):
+            if neuron.step(dt, I):
+                spike_times_model.append(i * dt)
+        
+        # Compare with data
+        # Simple metric: difference in spike count
+        error = abs(len(spike_times_data) - len(spike_times_model))
+        
+        # Add ISI distribution error if enough spikes
+        if len(spike_times_data) > 2 and len(spike_times_model) > 2:
+            ISI_data = np.diff(spike_times_data)
+            ISI_model = np.diff(spike_times_model)
+            error += abs(np.mean(ISI_data) - np.mean(ISI_model))
+        
+        return error
+    
+    # Parameter bounds
+    bounds = [
+        (0.5, 2.0),    # C_m
+        (0.05, 0.2),   # g_L
+        (-55.0, -45.0) # V_th
+    ]
+    
+    # Optimize
+    result = differential_evolution(objective, bounds, maxiter=50, 
+                                   popsize=10, seed=42)
+    
+    return result.x
+
+# Example usage (with synthetic data)
+dt = 0.1
+T = 1000
+time = np.arange(0, T, dt)
+I_applied = np.ones(len(time)) * 2.5
+
+# "Experimental" data (from known params)
+true_neuron = neun.LIFNeuron(
+    C_m=1.2, g_L=0.12, E_L=-70.0,
+    V_th=-52.0, V_reset=-70.0, tau_ref=2.0
+)
+
+spike_times_data = []
+true_neuron.reset()
+for i, I in enumerate(I_applied):
+    if true_neuron.step(dt, I):
+        spike_times_data.append(i * dt)
+
+print(f"True parameters: C_m=1.2, g_L=0.12, V_th=-52.0")
+print(f"Experimental spikes: {len(spike_times_data)}")
+
+# Fit model
+# fitted_params = fit_neuron_model(spike_times_data, I_applied)
+# print(f"Fitted parameters: C_m={fitted_params[0]:.2f}, "
+#       f"g_L={fitted_params[1]:.3f}, V_th={fitted_params[2]:.1f}")
+```
+
+## Best Practices for Research
+
+### 1. Model Validation
+
+```python
+def validate_model(model, experimental_metrics):
+    """Check if model matches experimental observations."""
+    
+    validations = {}
+    
+    # Check firing rate
+    if 'firing_rate' in experimental_metrics:
+        model_rate = compute_model_firing_rate(model)
+        exp_rate = experimental_metrics['firing_rate']
+        validations['firing_rate'] = abs(model_rate - exp_rate) / exp_rate < 0.2
+    
+    # Check CV of ISI
+    if 'CV_ISI' in experimental_metrics:
+        model_CV = compute_model_CV(model)
+        exp_CV = experimental_metrics['CV_ISI']
+        validations['CV_ISI'] = abs(model_CV - exp_CV) < 0.3
+    
+    return validations
+```
+
+### 2. Parameter Sensitivity Analysis
+
+```python
+def sensitivity_analysis(base_params, param_name, param_range):
+    """Test how output varies with parameter changes."""
+    
+    results = []
+    
+    for param_value in param_range:
+        params = base_params.copy()
+        params[param_name] = param_value
+        
+        # Run simulation
+        output = run_simulation(params)
+        results.append(output)
+    
+    return results
+
+# Example
+# base = {'C_m': 1.0, 'g_L': 0.1, 'E_L': -70.0, 'V_th': -50.0, 'V_reset': -70.0}
+# g_L_range = np.linspace(0.05, 0.2, 10)
+# results = sensitivity_analysis(base, 'g_L', g_L_range)
+```
+
+### 3. Reproducibility
+
+```python
+# Always set random seeds
+np.random.seed(42)
+
+# Document parameters clearly
+simulation_params = {
+    'dt': 0.1,
+    'T': 1000,
+    'network_size': 100,
+    'connection_probability': 0.2,
+    'version': '1.0',
+    'date': '2025-01-15'
+}
+
+# Save results
+import json
+
+results = {
+    'parameters': simulation_params,
+    'outputs': {
+        'firing_rates': firing_rates_het,
+        'synchrony': sync_E
+    }
+}
+
+with open('simulation_results.json', 'w') as f:
+    json.dump(results, f, indent=2)
+```
+
+## Real-World Applications
+
+### 1. Understanding Diseases
+
+Neural models help understand pathological conditions:
+
+- **Epilepsy**: Excessive synchronization
+- **Parkinson's**: Abnormal oscillations
+- **Schizophrenia**: E-I imbalance
+
+### 2. Brain-Computer Interfaces
+
+Models inform BCI design:
+
+- Decoding neural activity
+- Predicting responses to stimulation
+- Optimizing electrode placement
+
+### 3. Drug Development
+
+Computational screening:
+
+- Predict effects of drugs on neural dynamics
+- Optimize dosing regimens
+- Reduce animal testing
+
+## Summary
+
+In this advanced section, we explored:
+
+- ✅ Synaptic plasticity and STDP
+- ✅ Heterogeneous networks
+- ✅ Modeling specific brain circuits
+- ✅ Frequency-dependent processing
+- ✅ Fitting models to data
+- ✅ Validation and sensitivity analysis
+- ✅ Real-world applications
+
+::: {.callout-note}
+## Final Thoughts
+
+Computational neuroscience is a powerful tool for:
+
+1. **Understanding**: How neural circuits work
+2. **Predicting**: Network behavior under various conditions
+3. **Designing**: Experiments and interventions
+4. **Integrating**: Knowledge across scales
+5. **Translating**: Basic science to clinical applications
+:::
+
+## Where to Go From Here
+
+### Continue Learning
+
+- **Advanced textbooks**: Dayan & Abbott, Gerstner et al.
+- **Online courses**: Neuromatch Academy, Coursera
+- **Research papers**: Follow current literature
+- **Coding practice**: Implement papers you read
+
+### Join the Community
+
+- Neun GitHub: Contribute, ask questions
+- Computational Neuroscience conferences
+- Online forums and discussion groups
+
+### Apply Your Skills
+
+- Analyze experimental data
+- Develop new models
+- Collaborate with experimentalists
+- Publish your findings
+
+## Final Exercise
+
+**Build a complete model addressing a neuroscience question:**
+
+1. Choose a phenomenon (e.g., working memory, decision making)
+2. Review relevant literature
+3. Design a minimal model
+4. Implement and test
+5. Compare with experimental data
+6. Draw conclusions
+
+## Conclusion
+
+You now have the tools to:
+
+- ✅ Understand computational neuroscience principles
+- ✅ Build single neuron and network models with Neun
+- ✅ Simulate complex neural dynamics
+- ✅ Analyze and interpret results
+- ✅ Connect models to experimental work
+- ✅ Apply these skills to research questions
+
+**Thank you for participating in this workshop!**
+
+We hope you found it valuable and wish you success in your computational neuroscience journey.
+
+## References and Resources
+
+### Key Papers
+
+1. Garrido-Peña, A., et al. (2014). Frequency-dependent response of the neocortex and the olfactory bulb. *Applications of Mathematics*, 59(6), 651-663. DOI: [10.1007/s10492-014-0069-z](https://doi.org/10.1007/s10492-014-0069-z)
+
+2. Potjans, T. C., & Diesmann, M. (2014). The cell-type specific cortical microcircuit. *Cerebral Cortex*, 24(3), 785-806.
+
+3. Brunel, N. (2000). Dynamics of sparsely connected networks of excitatory and inhibitory spiking neurons. *Journal of Computational Neuroscience*, 8(3), 183-208.
+
+### Books
+
+- Dayan, P., & Abbott, L. F. (2001). *Theoretical Neuroscience*. MIT Press.
+- Gerstner, W., et al. (2014). *Neuronal Dynamics*. Cambridge University Press.
+- Ermentrout, G. B., & Terman, D. H. (2010). *Mathematical Foundations of Neuroscience*. Springer.
+
+### Online Resources
+
+- [Neun Library](https://github.com/GNB-UAM/Neun/)
+- [Neuromatch Academy](https://neuromatch.io/)
+- [Brian Simulator](https://briansimulator.org/)
+- [NEST Simulator](https://www.nest-simulator.org/)
+
+### Contact
+
+For questions about this workshop:
+
+- **Dr. Angel Lareo**
+- **Dr. Alicia Garrido-Peña**
+
+Workshop repository: [github.com/angellareo/workshop-neun](https://github.com/angellareo/workshop-neun)
+
+---
+
+**¡Gracias! Thank you!** 🧠✨

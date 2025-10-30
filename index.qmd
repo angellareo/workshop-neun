@@ -1,0 +1,148 @@
+---
+title: "Introduction to Computational Neuroscience with Neun"
+subtitle: "Workshop at Universidad Politécnica Salesiana"
+author: 
+  - "Dr. Angel Lareo"
+  - "Dr. Alicia Garrido-Peña"
+date: "2025"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+---
+
+## Welcome!
+
+Welcome to this hands-on workshop on computational neuroscience using the **Neun** library. This workshop is designed to provide you with both theoretical foundations and practical skills for modeling neural systems.
+
+## About the Workshop
+
+Computational neuroscience bridges the gap between experimental observations and theoretical understanding of neural systems. This workshop will guide you through:
+
+1. **Theoretical Foundations**: Understanding why and how we model neural systems
+2. **Practical Skills**: Learning to use the Neun library for neural simulations
+3. **Real Applications**: Connecting models to experimental findings
+
+## Facilitators
+
+### Dr. Angel Lareo
+Dr. Lareo is an expert in computational neuroscience with extensive experience in neural network modeling and simulation. His research focuses on understanding the dynamics of neural circuits and their role in information processing.
+
+### Dr. Alicia Garrido-Peña
+Dr. Garrido-Peña specializes in mathematical modeling of neural systems and computational biology. Her work encompasses the study of neuronal population dynamics and frequency-dependent responses in neural circuits, with particular emphasis on cortical and bulbar networks.
+
+Both facilitators have collaborated on research investigating the frequency-dependent behavior of neural circuits, as published in their work on line source analysis in the neocortex and olfactory bulb (Garrido-Peña et al., 2014, DOI: [10.1007/s10492-014-0069-z](https://doi.org/10.1007/s10492-014-0069-z)).
+
+## The Neun Library
+
+[Neun](https://github.com/GNB-UAM/Neun/) is a Python library for simulating neuronal networks. It provides:
+
+- Flexible neuron models
+- Network building tools
+- Efficient simulation engines
+- Visualization capabilities
+- Integration with scientific Python ecosystem
+
+## Workshop Structure
+
+### Part 1: Introduction to Computational Neuroscience
+Learn the fundamental principles of neural modeling, from single neurons to networks. Understand the mathematical foundations and their biological relevance.
+
+**Duration**: ~2 hours
+
+**Topics**:
+
+- Why model neural systems?
+- Single neuron dynamics
+- From neurons to networks
+- Frequency-dependent responses in neural circuits
+
+### Part 2: Hands-on with Neun
+Get practical experience building and simulating neural models using the Neun library.
+
+**Duration**: ~3 hours
+
+**Topics**:
+
+- Installing and setting up Neun
+- Creating single neuron models
+- Building neural networks
+- Simulating network dynamics
+- Analyzing results
+- Advanced modeling techniques
+
+## Prerequisites
+
+To get the most out of this workshop, you should have:
+
+- **Required**: Basic Python programming skills
+- **Recommended**: Familiarity with basic neuroscience concepts
+- **Helpful**: Experience with NumPy and Matplotlib
+
+## Getting Started
+
+Before the workshop, please ensure you have:
+
+1. **Python 3.8 or higher** installed on your computer
+2. **Jupyter** (Jupyter Lab or Jupyter Notebook)
+3. **Dependencies** installed (see below)
+
+### Installation
+
+```bash
+# Clone the workshop repository
+git clone https://github.com/angellareo/workshop-neun.git
+cd workshop-neun
+
+# Create a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Testing Your Setup
+
+Run this quick test to verify your installation:
+
+```python
+import neun
+import numpy as np
+import matplotlib.pyplot as plt
+
+print("All dependencies are installed correctly!")
+print(f"Neun version: {neun.__version__}")
+```
+
+## Workshop Materials
+
+Navigate through the workshop using the menu above:
+
+- **[Part 1: Computational Neuroscience](01-intro-compneuro.qmd)** - Theoretical foundations
+- **[Part 2: Neun Basics](02-neun-basics.qmd)** - Getting started with the library
+- **[Single Neurons](03-single-neurons.qmd)** - Modeling individual neurons
+- **[Neural Networks](04-neural-networks.qmd)** - Building connected networks
+- **[Advanced Topics](05-advanced-topics.qmd)** - Complex modeling scenarios
+
+## Additional Resources
+
+- [Neun GitHub Repository](https://github.com/GNB-UAM/Neun/)
+- [Neun Documentation](https://github.com/GNB-UAM/Neun/)
+- Reference: Garrido-Peña, A., Martín, E. D., Lareo, A., Herreras, O., & Reboreda, A. (2014). Frequency-dependent response of the neocortex and the olfactory bulb measured by line source analysis in rats. *Applications of Mathematics*, 59(6), 651-663.
+
+## Questions and Support
+
+During the workshop, feel free to ask questions at any time. After the workshop, you can:
+
+- Open issues on the [workshop repository](https://github.com/angellareo/workshop-neun)
+- Contact the facilitators
+- Join the Neun community discussions
+
+---
+
+Let's begin our journey into computational neuroscience! 🧠
+
+## Next Steps
+
+👉 **Start with [Part 1: Introduction to Computational Neuroscience](01-intro-compneuro.qmd)**

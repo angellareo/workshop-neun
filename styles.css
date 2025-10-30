@@ -1,0 +1,45 @@
+/* Custom styles for the workshop */
+
+.callout-note {
+    border-left-color: #007bff;
+}
+
+.callout-tip {
+    border-left-color: #28a745;
+}
+
+.callout-warning {
+    border-left-color: #ffc107;
+}
+
+.callout-important {
+    border-left-color: #dc3545;
+}
+
+/* Code blocks */
+pre.sourceCode {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 1em;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto;
+}
+
+/* Figures */
+figure {
+    margin: 2em 0;
+    text-align: center;
+}
+
+figcaption {
+    font-style: italic;
+    color: #6c757d;
+    margin-top: 0.5em;
+}
