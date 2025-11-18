@@ -4,7 +4,7 @@ matplotlib>=3.5.0
 scipy>=1.7.0
 
 # Neun library
-neun>=0.1.0
+# neun>=0.1.0
 
 # Jupyter for interactive notebooks
 jupyter>=1.0.0

@@ -3,7 +3,6 @@ title: "Introduction to Computational Neuroscience with Neun"
 subtitle: "Workshop at Universidad Politécnica Salesiana"
 author: 
   - "Dr. Angel Lareo"
-  - "Dr. Alicia Garrido-Peña"
 date: "2025"
 format:
   html:
@@ -15,6 +14,11 @@ format:
 
 Welcome to this hands-on workshop on computational neuroscience using the **Neun** library. This workshop is designed to provide you with both theoretical foundations and practical skills for modeling neural systems.
 
+During the workshop, feel free to ask questions at any time. After the workshop, you can:
+
+- Open issues on the [workshop repository](https://github.com/angellareo/workshop-neun)
+- [Contact the facilitators](mailto:angel.lareo@uam.es,alicia.garrido@uam.es?subject=[UPS2025%20Neun%20Workshop])
+
 ## About the Workshop
 
 Computational neuroscience bridges the gap between experimental observations and theoretical understanding of neural systems. This workshop will guide you through:
@@ -23,53 +27,47 @@ Computational neuroscience bridges the gap between experimental observations and
 2. **Practical Skills**: Learning to use the Neun library for neural simulations
 3. **Real Applications**: Connecting models to experimental findings
 
-## Facilitators
-
-### Dr. Angel Lareo
-Dr. Lareo is an expert in computational neuroscience with extensive experience in neural network modeling and simulation. His research focuses on understanding the dynamics of neural circuits and their role in information processing.
-
-### Dr. Alicia Garrido-Peña
-Dr. Garrido-Peña specializes in mathematical modeling of neural systems and computational biology. Her work encompasses the study of neuronal population dynamics and frequency-dependent responses in neural circuits, with particular emphasis on cortical and bulbar networks.
-
-Both facilitators have collaborated on research investigating the frequency-dependent behavior of neural circuits, as published in their work on line source analysis in the neocortex and olfactory bulb (Garrido-Peña et al., 2014, DOI: [10.1007/s10492-014-0069-z](https://doi.org/10.1007/s10492-014-0069-z)).
+[More info about the facilitators...](facilitators.qmd)
 
 ## The Neun Library
 
-[Neun](https://github.com/GNB-UAM/Neun/) is a Python library for simulating neuronal networks. It provides:
+[Neun](https://github.com/GNB-UAM/Neun/) is a C++ library for simulating neuronal networks. 
 
-- Flexible neuron models
-- Network building tools
-- Efficient simulation engines
-- Visualization capabilities
-- Integration with scientific Python ecosystem
+
 
 ## Workshop Structure
 
 ### Part 1: Introduction to Computational Neuroscience
 Learn the fundamental principles of neural modeling, from single neurons to networks. Understand the mathematical foundations and their biological relevance.
 
-**Duration**: ~2 hours
+**Duration**: ~15 min
 
 **Topics**:
 
 - Why model neural systems?
 - Single neuron dynamics
 - From neurons to networks
-- Frequency-dependent responses in neural circuits
 
-### Part 2: Hands-on with Neun
+### Part 2: Hands-on with Neun to simulate neural dynamics
 Get practical experience building and simulating neural models using the Neun library.
 
-**Duration**: ~3 hours
+**Duration**: ~2 h
 
 **Topics**:
 
 - Installing and setting up Neun
 - Creating single neuron models
-- Building neural networks
-- Simulating network dynamics
-- Analyzing results
+- Building and simulating neural networks
 - Advanced modeling techniques
+
+### Part 3: Analyzing neural dynamics from Neun's simulations
+Learn how to analyze the results obtained from simulating neural models using Neun.
+
+**Duration**: ~45 min
+
+**Topics**:
+- Analyzing neural dynamics
+
 
 ## Prerequisites
 
@@ -129,15 +127,7 @@ Navigate through the workshop using the menu above:
 
 - [Neun GitHub Repository](https://github.com/GNB-UAM/Neun/)
 - [Neun Documentation](https://github.com/GNB-UAM/Neun/)
-- Reference: Garrido-Peña, A., Martín, E. D., Lareo, A., Herreras, O., & Reboreda, A. (2014). Frequency-dependent response of the neocortex and the olfactory bulb measured by line source analysis in rats. *Applications of Mathematics*, 59(6), 651-663.
 
-## Questions and Support
-
-During the workshop, feel free to ask questions at any time. After the workshop, you can:
-
-- Open issues on the [workshop repository](https://github.com/angellareo/workshop-neun)
-- Contact the facilitators
-- Join the Neun community discussions
 
 ---
 
