@@ -115,7 +115,7 @@ But neurons do not operate in isolation.
 
 ### Why networks natter
 
-Individual neurons are limited in their computational capabilities. Complex nervous functions emerge from **networks** of interconnected neurons.
+Individual neurons are limited in their computational capabilities. Complex nervous functions emerge from **networks** of interconnected neurons. For instance, a simple learning circuit in a snail may contain around 20–50 neurons with roughly 1,000–2,000 synapses, a small cortical microcircuit in a mouse can involve 100 neurons forming 100,000–1,000,000 synapses, and human cortical circuits feature neurons with 10,000–30,000 synapses each, resulting in billions of connections. This dramatic increase in connectivity underlies the emergence of more sophisticated behaviors and cognitive functions.
 
 ### Synaptic connections
 
@@ -125,6 +125,10 @@ Neurons communicate through synapses:
 - **Electrical synapses**: Direct electrical coupling through gap junctions
 
 The strength and dynamics of synaptic connections determine network behavior.
+
+![Types of synapses](./images/synapses.png){width=80%}
+
+<!-- @TODO include reference -->
 
 ### Network Architecture
 
