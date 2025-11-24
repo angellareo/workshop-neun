@@ -67,6 +67,7 @@ Capture population dynamics efficiently.
 **Examples**: Artificial neural networks, cognitive decision-making models
 
 Focus on function rather than biological detail.
+<!-- @TODO: Add here images? -->
 
 ::: {.callout-tip}
 ## Choosing the Right Level
@@ -83,18 +84,21 @@ The appropriate level of modeling depends on your question:
 
 Neurons encode information by using electrical signals. Their membrane potential changes in response to internal states and external stimuli. As a result, neurons produce action potentials (spikes).
 
-![Action Potential Propagation](https://upload.wikimedia.org/wikipedia/commons/7/7d/Neuron_action_potential.webm){width=80%}
+![Action Potential Propagation](https://upload.wikimedia.org/wikipedia/commons/9/95/Action_Potential.gif){width=80%}
 
-*Video showing action potential propagation through a neuron. Source: Wikimedia Commons*
+*Video showing action potential propagation through a neuron. Source: Wikimedia Commons. By Laurentaylorj - Own work, CC BY-SA 3.0
 
 ### The Neuron as an Electrical Circuit
 
 A neuron can be modelled as an electrical circuit with:
+
 - **Capacitance** (C): Cell membrane stores charge
 - **Resistance** (R): Ion channels control current flow
 - **Current sources** (I): Synaptic inputs and intrinsic currents
 
-<!-- @TODO: Add here image? -->
+![Neuron as Electrical Circuit](./images/electrical_circuit.png){width=80%}
+
+<!-- @TODO: Check image added include thesis reference? -->
 
 ### Information coding in Neurons
 
@@ -107,7 +111,7 @@ Actions potentials are the primary means of neural communication. Neurons can en
 
 But neurons do not operate in isolation.
 
-## From Neurons to Networks: Sinapses
+## From Neurons to Networks: Synapses
 
 ### Why networks natter
 
