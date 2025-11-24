@@ -337,12 +337,7 @@ plt.show()
 
 ## Parameter Exploration
 
-A key use of simulations is exploring parameter space:
-
-
-```{.python filename="src/parameter-exploration.py"}
-{{< include src/parameter-exploration.py >}}
-```
+A key use of simulations is exploring parameter space which can be easily done in a model but can be quite of a challenge experimentally.
 
 ::: {.callout-tip}
 ## Parameter Exploration Tips
@@ -353,6 +348,10 @@ A key use of simulations is exploring parameter space:
 4. **Use multiple metrics** (firing rate, CV of ISI, etc.)
 5. **Compare with experimental data** when available
 :::
+
+```{.python filename="src/parameter-exploration.py"}
+{{< include src/parameter-exploration.py >}}
+```
 
 ## Running Multiple Trials
 
