@@ -104,19 +104,20 @@ source neun-venv/bin/activate  # On Windows: neun-venv\Scripts\activate
 
 # Install neun_py
 make
+
+# Go back to workshop-neun directory
+cd .. 
+
+# Install workshop dependencies
+pip install -r requirements.txt
 ```
 
 ### Testing Your Setup
 
-Run this quick test to verify your installation:
+Copy this code in a file called first-test.py and run this quick test to verify your installation:
 
-```python
-import neun
-import numpy as np
-import matplotlib.pyplot as plt
-
-print("All dependencies are installed correctly!")
-print(f"Neun version: {neun.__version__}")
+```{.python filename="src/first-test.py"}
+{{< include src/first-test.py >}}
 ```
 
 ## Workshop Materials
