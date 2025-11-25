@@ -139,41 +139,6 @@ So far we have just included fixed real (float) values in
 the example models, but Neun supports [various input patterns](input-patterns.qmd) through `add_synaptic_input()`,
 such as ramp current, sinusoidal currents, pulse trains...
 
-<!-- @TODO revisar esta sección -->
-## Response to Different Input Patterns
-
-### Subthreshold Responses
-
-```{.python filename="src/subthreshold-responses.py"}
-{{< include src/subthreshold-responses.py >}}
-```
-
-### Spike Generation
-
-```{.python filename="src/spike-generation.py"}
-{{< include src/spike-generation.py >}}
-```
-
-### F-I Curve Analysis
-
-The relationship between input current and firing rate is fundamental:
-
-
-```{.python filename="src/fr-i-curve.py"}
-{{< include src/fr-i-curve.py >}}
-```
-
-::: {.callout-tip}
-### Understanding F-I Curves
-
-The F-I curve tells us:
-
-- **Rheobase**: Minimum current for spiking
-- **Gain**: Slope of the curve (sensitivity to input)
-- **Saturation**: Maximum firing rate (limited by refr period)
-- **Linearity**: Linear for LIF, nonlinear for other models
-:::
-
 ## Noise and Variability
 
 Real neurons operate in noisy environments. Let's explore how noise affects spiking in two ways. First, by adding noise as a synaptic current input. Then, by using the chaotic regime of some neuron models.
