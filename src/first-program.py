@@ -18,10 +18,10 @@ neuron.set_param(neun_py.HHDoubleParameter.gk, 36 * 7.854e-3)    # K conductance
 neuron.set_param(neun_py.HHDoubleParameter.gl, 0.3 * 7.854e-3)   # Leak conductance
 
 # Step 4: Set initial conditions
-neuron.set_var(neun_py.HHDoubleVariable.v, -80.0)  # Membrane potential
-neuron.set_var(neun_py.HHDoubleVariable.m, 0.1)    # Na activation
-neuron.set_var(neun_py.HHDoubleVariable.n, 0.7)    # K activation
-neuron.set_var(neun_py.HHDoubleVariable.h, 0.01)   # Na inactivation
+neuron.set(neun_py.HHDoubleVariable.v, -80.0)  # Membrane potential
+neuron.set(neun_py.HHDoubleVariable.m, 0.1)    # Na activation
+neuron.set(neun_py.HHDoubleVariable.n, 0.7)    # K activation
+neuron.set(neun_py.HHDoubleVariable.h, 0.01)   # Na inactivation
 
 # Step 5: Run simulation
 dt = 0.001            # Time step (ms)
