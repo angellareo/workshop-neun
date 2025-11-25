@@ -306,6 +306,7 @@ You have an examples of batching in ```src/hh-multiple-trials.py``` and ```src/p
 
 In this section, we've learned:
 <!-- @TODO revisar estos puntos -->
+
 - ✅ How to install Neun C++ library and neun_py Python bindings
 - ✅ Basic architecture: neurons, synapses, integrators, parameters/variables
 - ✅ Creating and simulating Hodgkin-Huxley neurons with neun_py
