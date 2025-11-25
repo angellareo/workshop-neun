@@ -91,35 +91,6 @@ In your system, please ensure you have:
 1. **Python 3.7 or higher**, with development headers, installed on your computer
 2. **C++ compiler** with C++20 support (GCC 10+, Clang 10+)
 
-### Installation
-
-```bash
-# Clone the workshop repository
-git clone https://github.com/GNB-UAM/neun_py.git
-cd neun_py
-
-# Create a virtual environment (recommended)
-python -m venv neun-venv
-source neun-venv/bin/activate  # On Windows: neun-venv\Scripts\activate
-
-# Install neun_py
-make
-
-# Go back to workshop-neun directory
-cd .. 
-
-# Install workshop dependencies
-pip install -r requirements.txt
-```
-
-### Testing Your Setup
-
-Copy this code in a file called first-test.py and run this quick test to verify your installation:
-
-```{.python filename="src/first-test.py"}
-{{< include src/first-test.py >}}
-```
-
 ## Workshop Materials
 
 Navigate through the workshop using the menu above:
