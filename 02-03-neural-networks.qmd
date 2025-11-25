@@ -10,646 +10,435 @@ format:
 
 ## Introduction
 
-Individual neurons are the building blocks, but the real computational power of the brain emerges from networks. In this section, we'll learn how to build and simulate neural networks using Neun.
+Individual neurons are the building blocks, but the real computational power of the nervous system emerges from networks. In this section, we'll explore how to connect neurons through synapses and simulate network dynamics using Neun.
 
-## Network Fundamentals
+Understanding networks requires grasping three key concepts:
 
-### Key Concepts
+1. **Synapses**: The connections between neurons that enable communication
+2. **Connectivity**: The pattern of which neurons connect to which (the connectome)
+3. **Network dynamics**: The collective behavior that emerges from neuronal interactions
 
-1. **Populations**: Groups of similar neurons
-2. **Connectivity**: Who connects to whom
-3. **Synapses**: How connections transmit signals
-4. **Dynamics**: Collective behavior emerging from interactions
+## Types of Synapses
 
-### Network Architecture
+Neun provides two main types of synaptic connections, each with distinct properties and biological relevance:
 
-Networks can be organized in many ways:
+::: {.panel-tabset}
 
-- **Feedforward**: Input → Hidden → Output
-- **Recurrent**: Neurons connect back to themselves
-- **Random**: Connections made probabilistically
-- **Structured**: Specific patterns (grid, ring, etc.)
+### Electrical Synapses
 
-## Creating Your First Network
+Electrical synapses (gap junctions) provide **direct electrical coupling** between neurons through protein channels that connect their cytoplasm. This creates:
 
-Let's build a simple two-population network with excitatory and inhibitory neurons:
+- **Instantaneous transmission**: No synaptic delay
+- **Bidirectional communication**: Current flows both ways
+- **Synchronization**: Tendency to align neuron activity
 
-```python
-import neun
-import numpy as np
-import matplotlib.pyplot as plt
+**Structure**: `ESynN1N2PrecisionIntegrator`
 
-# Network parameters
-N_E = 80  # Excitatory neurons
-N_I = 20  # Inhibitory neurons
-
-# Create populations
-E_pop = neun.Population(
-    N_E,
-    neuron_type=neun.LIFNeuron,
-    C_m=1.0, g_L=0.1, E_L=-70.0,
-    V_th=-50.0, V_reset=-70.0, tau_ref=2.0
-)
-
-I_pop = neun.Population(
-    N_I,
-    neuron_type=neun.LIFNeuron,
-    C_m=1.0, g_L=0.1, E_L=-70.0,
-    V_th=-50.0, V_reset=-65.0, tau_ref=1.0
-)
-
-print(f"Created network with {N_E} E neurons and {N_I} I neurons")
-print(f"Total: {N_E + N_I} neurons")
-```
-
-### Adding Synaptic Connections
-
-```python
-# Synaptic parameters
-g_EE = 0.01  # E→E strength
-g_EI = 0.02  # E→I strength  
-g_IE = 0.05  # I→E strength
-g_II = 0.02  # I→I strength
-
-p_conn = 0.2  # Connection probability
-
-# Create synapse objects
-syn_EE = neun.ExponentialSynapse(
-    pre_pop=E_pop,
-    post_pop=E_pop,
-    g_syn=g_EE,
-    E_syn=0.0,      # Excitatory reversal
-    tau_syn=5.0,    # Time constant (ms)
-    p=p_conn
-)
-
-syn_EI = neun.ExponentialSynapse(
-    pre_pop=E_pop,
-    post_pop=I_pop,
-    g_syn=g_EI,
-    E_syn=0.0,
-    tau_syn=5.0,
-    p=p_conn
-)
-
-syn_IE = neun.ExponentialSynapse(
-    pre_pop=I_pop,
-    post_pop=E_pop,
-    g_syn=g_IE,
-    E_syn=-80.0,    # Inhibitory reversal
-    tau_syn=10.0,
-    p=p_conn
-)
-
-syn_II = neun.ExponentialSynapse(
-    pre_pop=I_pop,
-    post_pop=I_pop,
-    g_syn=g_II,
-    E_syn=-80.0,
-    tau_syn=10.0,
-    p=p_conn
-)
-
-print(f"Created {4} synapse types")
-print(f"Connection probability: {p_conn}")
-```
-
-### Creating the Network Object
-
-```python
-# Combine into network
-network = neun.Network(
-    populations=[E_pop, I_pop],
-    synapses=[syn_EE, syn_EI, syn_IE, syn_II]
-)
-
-print(f"\nNetwork summary:")
-print(f"  Populations: {len(network.populations)}")
-print(f"  Synapses: {len(network.synapses)}")
-print(f"  Total neurons: {network.n_neurons}")
-```
-
-## Simulating Network Dynamics
-
-### Basic Simulation
-
-```python
-# Simulation parameters
-dt = 0.1
-T = 1000
-time = np.arange(0, T, dt)
-n_steps = len(time)
-
-# External input (to E population only)
-I_ext = np.zeros((network.n_neurons, n_steps))
-I_ext[:N_E, 2000:8000] = 2.0  # Step input to E neurons
-
-# Initialize recording
-spike_times = [[] for _ in range(network.n_neurons)]
-
-# Reset network
-network.reset()
-
-# Simulate
-for step in range(n_steps):
-    # Get current input
-    I_current = I_ext[:, step]
-    
-    # Step the network
-    fired = network.step(dt, I_current)
-    
-    # Record spikes
-    for neuron_idx in np.where(fired)[0]:
-        spike_times[neuron_idx].append(time[step])
-    
-    # Progress indicator
-    if step % 1000 == 0:
-        print(f"Simulated {step * dt:.0f} / {T} ms", end='\r')
-
-print(f"Simulation complete: {T} ms")
-```
-
-### Visualizing Network Activity
-
-#### Raster Plot
-
-```python
-fig, axes = plt.subplots(3, 1, figsize=(14, 10), sharex=True)
-
-# Excitatory neurons
-for idx in range(N_E):
-    if spike_times[idx]:
-        axes[0].scatter(spike_times[idx], [idx] * len(spike_times[idx]),
-                       s=1, c='blue', marker='|', alpha=0.6)
-
-axes[0].set_ylabel('E Neuron Index')
-axes[0].set_title('Excitatory Population')
-axes[0].set_ylim([-0.5, N_E - 0.5])
-
-# Inhibitory neurons
-for idx in range(N_E, N_E + N_I):
-    if spike_times[idx]:
-        axes[1].scatter(spike_times[idx], [idx - N_E] * len(spike_times[idx]),
-                       s=2, c='red', marker='|', alpha=0.8)
-
-axes[1].set_ylabel('I Neuron Index')
-axes[1].set_title('Inhibitory Population')
-axes[1].set_ylim([-0.5, N_I - 0.5])
-
-# External input
-axes[2].plot(time, I_ext[0, :], 'g-', linewidth=1.5)
-axes[2].set_xlabel('Time (ms)')
-axes[2].set_ylabel('Input (nA)')
-axes[2].set_title('External Input')
-axes[2].grid(True, alpha=0.3)
-
-plt.suptitle('E-I Network Activity', fontsize=14)
-plt.tight_layout()
-plt.show()
-```
-
-#### Population Firing Rate
-
-```python
-def compute_population_rate(spike_times_list, T, dt, window=50):
-    """Compute population firing rate over time."""
-    time = np.arange(0, T, dt)
-    rate = np.zeros_like(time)
-    n_neurons = len(spike_times_list)
-    
-    for i, t in enumerate(time):
-        count = 0
-        for spikes in spike_times_list:
-            count += sum(1 for s in spikes if t - window < s <= t)
-        rate[i] = (count / n_neurons) / (window / 1000)  # Hz
-    
-    return time, rate
-
-# Compute rates
-time_r, rate_E = compute_population_rate(spike_times[:N_E], T, dt)
-time_r, rate_I = compute_population_rate(spike_times[N_E:], T, dt)
-
-# Plot
-fig, ax = plt.subplots(figsize=(14, 5))
-ax.plot(time_r, rate_E, 'b-', linewidth=2, label='Excitatory', alpha=0.7)
-ax.plot(time_r, rate_I, 'r-', linewidth=2, label='Inhibitory', alpha=0.7)
-ax.set_xlabel('Time (ms)', fontsize=12)
-ax.set_ylabel('Population Rate (Hz)', fontsize=12)
-ax.set_title('Population Activity Over Time', fontsize=14)
-ax.legend(fontsize=11)
-ax.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
+```{.python filename="src/electrical-synapse.py"}
+{{< include src/electrical-synapse.py >}}
 ```
 
 ::: {.callout-note}
-## Excitation-Inhibition Balance
+## Gap Junction Physics
 
-The balance between E and I is crucial:
+The current through a gap junction is proportional to the voltage difference:
+$$I_{syn} = g_{gap} \cdot (V_1 - V_2)$$
 
-- **Too much E**: Runaway excitation, seizure-like activity
-- **Too much I**: Network shuts down, no activity
-- **Balanced**: Stable, responsive network dynamics
+where $g_{gap}$ is the gap junction conductance (typically 0.001-0.01).
 :::
 
-## Network Oscillations
+:::{.callout-tip}
+#### Hands-on
 
-Networks can generate rhythmic activity through recurrent interactions.
+Try modifying the coupling conductance... 💻
 
-### Generating Gamma Oscillations
+- Change `-0.002` to `-0.001` (weaker coupling)
+- Change to `-0.005` (stronger coupling)
 
-```python
-# Parameters tuned for gamma oscillations (30-80 Hz)
-N_E = 200
-N_I = 50
-
-# Create populations with faster dynamics
-E_pop = neun.Population(
-    N_E,
-    neuron_type=neun.LIFNeuron,
-    C_m=0.5, g_L=0.05, E_L=-70.0,
-    V_th=-50.0, V_reset=-70.0, tau_ref=1.0
-)
-
-I_pop = neun.Population(
-    N_I,
-    neuron_type=neun.LIFNeuron,
-    C_m=0.2, g_L=0.05, E_L=-70.0,
-    V_th=-50.0, V_reset=-65.0, tau_ref=0.5
-)
-
-# Strong, fast synapses
-syn_EI = neun.ExponentialSynapse(
-    pre_pop=E_pop, post_pop=I_pop,
-    g_syn=0.04, E_syn=0.0, tau_syn=3.0, p=0.3
-)
-
-syn_IE = neun.ExponentialSynapse(
-    pre_pop=I_pop, post_pop=E_pop,
-    g_syn=0.1, E_syn=-80.0, tau_syn=7.0, p=0.4
-)
-
-syn_II = neun.ExponentialSynapse(
-    pre_pop=I_pop, post_pop=I_pop,
-    g_syn=0.05, E_syn=-80.0, tau_syn=7.0, p=0.3
-)
-
-# Create network
-gamma_net = neun.Network(
-    populations=[E_pop, I_pop],
-    synapses=[syn_EI, syn_IE, syn_II]
-)
-
-# Simulate with constant background input
-dt = 0.1
-T = 500
-time = np.arange(0, T, dt)
-
-I_ext = np.zeros((gamma_net.n_neurons, len(time)))
-# Noisy background to E neurons
-I_ext[:N_E, :] = 1.5 + 0.5 * np.random.randn(N_E, len(time))
-
-spike_times_gamma = [[] for _ in range(gamma_net.n_neurons)]
-gamma_net.reset()
-
-for step in range(len(time)):
-    fired = gamma_net.step(dt, I_ext[:, step])
-    for neuron_idx in np.where(fired)[0]:
-        spike_times_gamma[neuron_idx].append(time[step])
-
-# Compute and analyze population rate
-time_r, rate_E = compute_population_rate(spike_times_gamma[:N_E], T, dt, window=10)
-
-# Compute power spectrum
-from scipy import signal as sp_signal
-
-rate_detrended = rate_E - np.mean(rate_E)
-freqs, psd = sp_signal.welch(rate_detrended, fs=1000/dt, nperseg=512)
-
-# Plot
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 8))
-
-# Time series
-ax1.plot(time_r, rate_E, 'b-', linewidth=1.5)
-ax1.set_ylabel('Population Rate (Hz)')
-ax1.set_title('Network Oscillation')
-ax1.grid(True, alpha=0.3)
-
-# Power spectrum
-ax2.semilogy(freqs, psd, 'b-', linewidth=2)
-ax2.set_xlabel('Frequency (Hz)')
-ax2.set_ylabel('Power')
-ax2.set_title('Power Spectrum')
-ax2.set_xlim([0, 150])
-ax2.axvspan(30, 80, alpha=0.2, color='green', label='Gamma band')
-ax2.legend()
-ax2.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-
-# Find peak frequency
-gamma_band = (freqs >= 30) & (freqs <= 80)
-if any(gamma_band):
-    peak_idx = np.argmax(psd[gamma_band])
-    peak_freq = freqs[gamma_band][peak_idx]
-    print(f"Peak oscillation frequency: {peak_freq:.1f} Hz")
-```
-
-::: {.callout-tip}
-## Generating Different Oscillations
-
-Different oscillation frequencies require:
-
-- **Gamma (30-80 Hz)**: Fast inhibition, strong E-I coupling
-- **Beta (13-30 Hz)**: Intermediate time constants
-- **Alpha (8-13 Hz)**: Slower synapses, thalamic involvement
-- **Theta (4-8 Hz)**: Much slower dynamics, neuromodulation
+What happens to the synchronization between neurons?
 :::
 
-## Feedforward Networks
 
-Feedforward architectures process information in stages:
+### Diffusion Synapses
 
-```python
-# Three-layer feedforward network
-layer_sizes = [20, 30, 10]  # Input, Hidden, Output
+Diffusion synapses model **chemical-like coupling** with time-dependent dynamics that approximate neurotransmitter diffusion across the synaptic cleft:
 
-layers = []
-for size in layer_sizes:
-    layer = neun.Population(
-        size,
-        neuron_type=neun.LIFNeuron,
-        C_m=1.0, g_L=0.1, E_L=-70.0,
-        V_th=-50.0, V_reset=-70.0, tau_ref=2.0
-    )
-    layers.append(layer)
+- **Slower transmission**: Time-dependent dynamics
+- **Filtering effects**: Can smooth rapid fluctuations  
+- **Biological realism**: Better models chemical synapses
 
-# Create feedforward connections
-synapses_ff = []
+**Structure**: `DSynN1N2PrecisionIntegrator`
 
-# Input → Hidden
-# p=0.5 means 50% connection probability (sparse connectivity)
-syn_IH = neun.ExponentialSynapse(
-    pre_pop=layers[0],
-    post_pop=layers[1],
-    g_syn=0.03,
-    E_syn=0.0,
-    tau_syn=5.0,
-    p=0.5  # 50% of possible connections are made
-)
-synapses_ff.append(syn_IH)
-
-# Hidden → Output
-# p=0.6 means 60% connection probability (denser than input layer)
-syn_HO = neun.ExponentialSynapse(
-    pre_pop=layers[1],
-    post_pop=layers[2],
-    g_syn=0.04,
-    E_syn=0.0,
-    tau_syn=5.0,
-    p=0.6  # 60% of possible connections are made
-)
-synapses_ff.append(syn_HO)
-
-ff_network = neun.Network(populations=layers, synapses=synapses_ff)
-
-print(f"Feedforward network:")
-print(f"  Input layer: {layer_sizes[0]} neurons")
-print(f"  Hidden layer: {layer_sizes[1]} neurons")
-print(f"  Output layer: {layer_sizes[2]} neurons")
+```{.python filename="src/diffusion-synapse.py"}
+{{< include src/diffusion-synapse.py >}}
 ```
 
-### Simulating Feedforward Processing
+::: {.callout-note}
+## Diffusion vs Electrical
 
-```python
-# Present patterns to input layer
-dt = 0.1
-T = 300
-time = np.arange(0, T, dt)
+While diffusion synapses include dynamics, they're still simplified compared to full chemical synapses. For more realistic chemical transmission (with neurotransmitter release, receptors, etc.), you'd need additional mechanisms.
+:::
 
-# Create three input patterns (pulses at different times)
-patterns = [
-    (500, 700),   # Pattern 1
-    (1200, 1400), # Pattern 2  
-    (1900, 2100)  # Pattern 3
-]
+:::{.callout-tip}
+#### Hands-on
 
-I_ext_ff = np.zeros((ff_network.n_neurons, len(time)))
+Compare the two synapse types... 💻
 
-for start, end in patterns:
-    # Random subset of input neurons activated
-    active_inputs = np.random.choice(layer_sizes[0], size=10, replace=False)
-    I_ext_ff[active_inputs, start:end] = 3.0
+Run both examples and observe:
+- Which shows faster coupling?
+- Which produces tighter synchronization?
+- How do the voltage traces differ?
+:::
 
-# Simulate
-spike_times_ff = [[] for _ in range(ff_network.n_neurons)]
-ff_network.reset()
+:::
 
-for step in range(len(time)):
-    fired = ff_network.step(dt, I_ext_ff[:, step])
-    for neuron_idx in np.where(fired)[0]:
-        spike_times_ff[neuron_idx].append(time[step])
 
-# Plot raster for each layer
-fig, axes = plt.subplots(3, 1, figsize=(14, 9), sharex=True)
+::: {.callout-important}
+## Synapse Naming Convention
 
-layer_names = ['Input', 'Hidden', 'Output']
-colors = ['blue', 'green', 'red']
-start_idx = 0
+Neun follows a systematic naming pattern for synapses:
 
-for ax, size, name, color in zip(axes, layer_sizes, layer_names, colors):
-    for idx in range(start_idx, start_idx + size):
-        if spike_times_ff[idx]:
-            ax.scatter(spike_times_ff[idx], 
-                      [idx - start_idx] * len(spike_times_ff[idx]),
-                      s=2, c=color, marker='|', alpha=0.7)
-    
-    ax.set_ylabel(f'{name}\nNeuron')
-    ax.set_ylim([-0.5, size - 0.5])
-    ax.set_title(f'{name} Layer Activity')
-    ax.grid(True, alpha=0.3, axis='x')
-    
-    start_idx += size
-
-axes[-1].set_xlabel('Time (ms)')
-plt.suptitle('Feedforward Network: Pattern Processing', fontsize=14)
-plt.tight_layout()
-plt.show()
+```
+{SynapseType}{Neuron1Type}{Neuron2Type}{Precision}{Integrator}
 ```
 
-## Recurrent Networks
+**Examples**:
+- `ESynHHHHDoubleRK4` - Electrical synapse between two HH neurons
+- `DSynHRHRDoubleRK6` - Diffusion synapse between two HR neurons  
+- `ESynHHHRFloatRK4` - Electrical synapse from HH to HR neuron
 
-Recurrent connections enable persistent activity and memory:
+**Important**: [Always step synapses **before** stepping neurons](step-order.qmd) in your simulation loop!
+:::
 
-```python
-# Small recurrent network
-N_rec = 50
+## Building Neural Networks
 
-rec_pop = neun.Population(
-    N_rec,
-    neuron_type=neun.IzhikevichNeuron,
-    a=0.02, b=0.2, c=-65, d=8
-)
+### Chain Network
 
-# Recurrent excitatory connections
-syn_rec = neun.ExponentialSynapse(
-    pre_pop=rec_pop,
-    post_pop=rec_pop,
-    g_syn=0.02,
-    E_syn=0.0,
-    tau_syn=5.0,
-    p=0.2
-)
+Let's build a simple feedforward chain where activity propagates from one neuron to the next:
 
-rec_network = neun.Network(populations=[rec_pop], synapses=[syn_rec])
+```{.python filename="src/neuron-chain.py"}
+{{< include src/neuron-chain.py >}}
+```
 
-# Brief input pulse
-dt = 0.1
-T = 1000
-time = np.arange(0, T, dt)
+**Observation**: Notice how the spike travels through the chain with some delay. The coupling strength determines how effectively the signal propagates.
 
-I_ext_rec = np.zeros((N_rec, len(time)))
-# Brief, strong pulse to subset of neurons
-I_ext_rec[:15, 500:600] = 10.0
+:::{.callout-tip}
+#### Hands-on
 
-# Simulate
-spike_times_rec = [[] for _ in range(N_rec)]
-rec_network.reset()
+Experiment with the chain... 💻
 
-for step in range(len(time)):
-    fired = rec_network.step(dt, I_ext_rec[:, step])
-    for neuron_idx in np.where(fired)[0]:
-        spike_times_rec[neuron_idx].append(time[step])
+1. Change the coupling strength (currently `-0.002`)
+2. Add input to the last neuron instead of the first
+3. Add more neurons to the chain (change `4` to `6` or `8`)
 
-# Plot
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 8), sharex=True)
+What's the maximum chain length before signal dies out?
+:::
 
-# Raster
-for idx in range(N_rec):
-    if spike_times_rec[idx]:
-        ax1.scatter(spike_times_rec[idx], [idx] * len(spike_times_rec[idx]),
-                   s=2, c='blue', marker='|', alpha=0.6)
+### All-to-All Network
 
-ax1.set_ylabel('Neuron Index')
-ax1.set_title('Recurrent Network: Persistent Activity')
-ax1.axvline(50, color='red', linestyle='--', alpha=0.5, label='Input ends')
-ax1.legend()
+In many brain regions, neurons are densely interconnected. Let's simulate this:
 
-# Population rate
-time_r, rate_rec = compute_population_rate(spike_times_rec, T, dt, window=50)
-ax2.plot(time_r, rate_rec, 'b-', linewidth=2)
-ax2.set_xlabel('Time (ms)')
-ax2.set_ylabel('Population Rate (Hz)')
-ax2.axvline(50, color='red', linestyle='--', alpha=0.5)
-ax2.grid(True, alpha=0.3)
+```{.python filename="src/population-rate.py"}
+{{< include src/population-rate.py >}}
+```
 
-plt.tight_layout()
-plt.show()
+::: {.callout-note}
+## All-to-All Connectivity
+
+With $N$ neurons, an all-to-all network has:
+$$\text{Number of synapses} = \frac{N(N-1)}{2}$$
+
+This scales as $O(N^2)$, so computation grows quickly with network size!
+:::
+
+## Visualizing Network Activity
+
+Understanding network behavior requires appropriate visualization tools:
+
+### Raster Plots
+
+Raster plots show **spike times** for all neurons, revealing temporal patterns:
+
+```{.python filename="src/raster-plot.py"}
+{{< include src/raster-plot.py >}}
+```
+
+**What to look for**:
+- **Synchrony**: Vertical alignment of spikes
+- **Propagation**: Diagonal patterns
+- **Rhythms**: Regular spacing
+
+:::{.callout-tip}
+#### Hands-on
+
+Analyze the raster plot... 💻
+
+- Can you identify synchronized events?
+- Do you see traveling waves?
+- Try increasing the coupling strength - what changes?
+:::
+
+### Population Firing Rate
+
+The population firing rate captures **collective activity**:
+
+Already shown in the all-to-all network example above! The population firing rate is computed using a sliding window to count spikes across the network.
+
+::: {.callout-note}
+## Computing Firing Rates
+
+Common approaches:
+1. **Spike counting**: Count spikes in time window, divide by window size
+2. **Instantaneous rate**: Inverse of inter-spike interval
+3. **Kernel smoothing**: Convolve spike train with Gaussian
+
+Each has trade-offs between temporal resolution and noise!
+:::
+
+## Network Synchronization
+
+How coupled neurons synchronize depends on the **coupling strength**:
+
+```{.python filename="src/coupling-strength.py"}
+{{< include src/coupling-strength.py >}}
 ```
 
 ::: {.callout-important}
-## Recurrent Networks
+## Synchronization Mechanisms
 
-Key properties:
+Electrical synapses promote synchronization through:
 
-- **Persistent activity**: Can maintain firing after input ends
-- **Attractor dynamics**: Network settles into stable states
-- **Memory**: Store information in patterns of activity
-- **Amplification**: Can enhance weak signals
-- **Instability risk**: Need careful balancing
+1. **Direct coupling**: Voltage differences drive equalizing currents
+2. **Phase locking**: Neurons adjust their firing times to match
+3. **Resonance**: Coupling most effective near natural frequencies
+
+But too much synchronization can be pathological (e.g., epilepsy)!
 :::
 
-## Analyzing Network Behavior
+:::{.callout-tip}
+#### Hands-on
 
-### Synchrony Measures
+Explore synchronization... 💻
 
-```python
-def compute_synchrony(spike_times_list, T, dt, window=10):
-    """Compute synchrony using spike count correlation."""
-    n_neurons = len(spike_times_list)
-    time_bins = np.arange(0, T, window)
-    
-    # Bin spike counts
-    spike_counts = np.zeros((n_neurons, len(time_bins) - 1))
-    for i, spikes in enumerate(spike_times_list):
-        spike_counts[i, :], _ = np.histogram(spikes, bins=time_bins)
-    
-    # Compute pairwise correlations
-    correlations = []
-    for i in range(n_neurons):
-        for j in range(i + 1, n_neurons):
-            if np.std(spike_counts[i, :]) > 0 and np.std(spike_counts[j, :]) > 0:
-                corr = np.corrcoef(spike_counts[i, :], spike_counts[j, :])[0, 1]
-                if not np.isnan(corr):
-                    correlations.append(corr)
-    
-    return np.mean(correlations) if correlations else 0
+1. What coupling strength gives 50% synchronization?
+2. Is there a threshold effect?
+3. Try different initial voltage differences - does it matter?
+:::
 
-# Compare synchrony across populations
-sync_E = compute_synchrony(spike_times[:N_E], T, dt)
-sync_I = compute_synchrony(spike_times[N_E:], T, dt)
+## Central Pattern Generators (CPGs)
 
-print(f"Synchrony (E population): {sync_E:.3f}")
-print(f"Synchrony (I population): {sync_I:.3f}")
+CPGs are neural circuits that produce **rhythmic patterns** without rhythmic input. They're essential for locomotion, breathing, and other rhythmic behaviors.
+
+Key features of CPGs:
+- **Intrinsic rhythmicity**: Generated by network dynamics, not input
+- **Phase relationships**: Neurons fire in specific temporal order
+- **Robustness**: Maintain rhythm despite perturbations
+
+### Reciprocal Inhibition Model
+
+A classic CPG uses two neurons with mutual inhibition creating alternating bursts:
+
+```{.python filename="src/cpg-analysis.py"}
+{{< include src/cpg-analysis.py >}}
 ```
 
-### Connection Weight Analysis
+::: {.callout-note}
+## CPG Analysis Metrics
 
+**Inter-Burst Interval (IBI)**: Time between successive bursts in one neuron
+- Measures rhythm regularity
+- CV of IBI < 0.1 indicates regular rhythm
+
+**Phase Lag**: Time difference between corresponding events in two neurons
+- Characterizes coordination
+- For anti-phase: lag ≈ half the cycle period
+
+**Duty Cycle**: Fraction of time neuron is active
+- Active time / cycle period
+- Typical values: 0.3-0.5 for alternating rhythms
+:::
+
+:::{.callout-tip}
+#### Hands-on
+
+Modify the CPG... 💻
+
+1. Change coupling strength (`-0.05` → `-0.03` or `-0.08`)
+2. Try asymmetric coupling (different values for each direction)
+3. Adjust external drive `I` parameter
+
+Can you create a different phase relationship?
+
+<details>
+<summary>Hint</summary>
+Stronger coupling → faster synchronization  
+Asymmetric coupling → asymmetric phase relationship  
+Higher drive → faster rhythm
+</details>
+:::
+
+## Excitation-Inhibition Balance
+
+Real neural networks contain both excitatory and inhibitory neurons. The balance between them is critical for stable dynamics.
+
+::: {.callout-note}
+## E-I Balance Principles
+
+- **Too much excitation**: Runaway activity, seizures
+- **Too much inhibition**: Network shuts down, no response  
+- **Balanced**: Stable, responsive, rich dynamics
+
+Typical cortical networks: ~80% excitatory, ~20% inhibitory neurons
+
+Current Neun implementation focuses on electrical and diffusion coupling. For explicit excitatory/inhibitory synapses, you can:
+1. Use coupling conductance sign and magnitude
+2. Implement through the external input mechanism
+3. Wait for future Neun updates with chemical synapse models!
+:::
+
+## Best Practices for Network Simulations
+
+::: {.callout-important}
+## Simulation Tips
+
+**1. Update Order Matters**
 ```python
-# Visualize connection matrix
-def plot_connectivity(synapse, title=''):
-    """Plot connectivity matrix."""
-    n_pre = synapse.pre_pop.size
-    n_post = synapse.post_pop.size
+# Correct order:
+for synapse in synapses:
+    synapse.step(step)
     
-    conn_matrix = synapse.get_connectivity_matrix()
-    
-    fig, ax = plt.subplots(figsize=(8, 7))
-    im = ax.imshow(conn_matrix, aspect='auto', cmap='binary', 
-                   interpolation='nearest')
-    ax.set_xlabel('Pre-synaptic Neuron')
-    ax.set_ylabel('Post-synaptic Neuron')
-    ax.set_title(title)
-    plt.colorbar(im, label='Connection Weight')
-    plt.tight_layout()
-    plt.show()
-    
-    print(f"Connection density: {np.sum(conn_matrix > 0) / conn_matrix.size:.2%}")
-
-# Example (if connectivity matrix is available)
-# plot_connectivity(syn_EE, 'E→E Connections')
+for neuron in neurons:
+    neuron.step(step)
 ```
+
+**2. Pre-allocate Storage**
+```python
+# Efficient for large networks
+n_steps = int(duration / step)
+voltages = np.zeros((n_neurons, n_steps))
+```
+
+**3. Choose Appropriate Time Steps**
+- Too large: Numerical instability
+- Too small: Slow simulation
+- Typical: 0.001-0.01 ms for HH neurons
+
+**4. Monitor for Pathological States**
+- Check for NaN or infinite values
+- Watch for runaway excitation
+- Validate with known behaviors
+:::
+
+## Advanced Topics
+
+<details>
+<summary>Scaling to Larger Networks</summary>
+
+For networks with hundreds or thousands of neurons:
+
+1. **Sparse connectivity**: Not all-to-all, but random with probability $p$
+2. **Vectorization**: Use NumPy arrays for batch operations
+3. **Precision trade-offs**: Consider `Float` vs `Double`
+4. **Parallel simulation**: Multiple independent networks
+
+Example sparse connection:
+```python
+connection_prob = 0.1  # 10% connectivity
+for i in range(n_neurons):
+    for j in range(i+1, n_neurons):
+        if np.random.random() < connection_prob:
+            # Create synapse between i and j
+            pass
+```
+</details>
+
+<details>
+<summary>Network Topology Matters</summary>
+
+Different connectivity patterns produce different dynamics:
+
+- **All-to-all**: Strong synchronization
+- **Chain**: Wave propagation
+- **Ring**: Persistent traveling waves
+- **Random**: Complex, irregular dynamics
+- **Small-world**: Balance of local and global connectivity
+
+Try implementing different topologies and observe the emergent dynamics!
+</details>
+
+<details>
+<summary>Analyzing Network Oscillations</summary>
+
+Networks can generate rhythms at different frequencies:
+
+- **Gamma (30-80 Hz)**: Fast inhibitory feedback
+- **Beta (13-30 Hz)**: Motor planning and attention
+- **Alpha (8-13 Hz)**: Relaxed wakefulness  
+- **Theta (4-8 Hz)**: Memory and navigation
+
+Use Fourier analysis to identify oscillation frequencies:
+```python
+from scipy import signal
+
+# Compute power spectrum
+freqs, psd = signal.welch(population_rate, fs=1/(step/1000))
+
+# Find peak frequency
+peak_freq = freqs[np.argmax(psd)]
+print(f"Peak oscillation: {peak_freq:.1f} Hz")
+```
+</details>
 
 ## Summary
 
 In this section, we covered:
 
-- ✅ Creating multi-population networks
-- ✅ Adding synaptic connections
-- ✅ Simulating network dynamics
-- ✅ Visualizing network activity (rasters, rates)
-- ✅ Generating network oscillations
-- ✅ Feedforward architectures
-- ✅ Recurrent networks and persistent activity
-- ✅ Analyzing network behavior
+- ✅ **Synapse types**: Electrical (gap junctions) vs diffusion (chemical-like)
+- ✅ **Building networks**: From simple chains to all-to-all connectivity
+- ✅ **Visualization**: Raster plots and population firing rates
+- ✅ **Synchronization**: How coupling strength affects coordination
+- ✅ **Central Pattern Generators**: Intrinsic rhythms from reciprocal coupling
+- ✅ **Network analysis**: IBIs, phase relationships, and temporal patterns
 
-::: {.callout-note}
-## Key Principles
-
-1. **E-I balance**: Critical for stable dynamics
-2. **Connectivity**: Determines network function
-3. **Synaptic dynamics**: Shape temporal processing
-4. **Oscillations**: Emerge from circuit interactions
-5. **Architecture**: Feedforward vs recurrent vs hybrid
-:::
+**Key takeaways**:
+- Synapses create the connectivity that enables network computation
+- Small changes in coupling can dramatically alter network behavior
+- Appropriate visualization reveals patterns invisible in raw data
+- CPGs demonstrate how networks generate complex behaviors autonomously
 
 ## Exercises
 
-1. **Tune oscillations**: Adjust parameters to generate theta (4-8 Hz) instead of gamma
-2. **Pattern completion**: Build a recurrent network that completes partial patterns
-3. **Layer analysis**: In the feedforward network, compare selectivity across layers
-4. **Competition**: Add inhibitory interneurons to create winner-take-all dynamics
+Test your understanding with these challenges:
+
+1. **Bidirectional vs Unidirectional**: Create a synapse with asymmetric coupling (different conductances in each direction). How does this affect synchronization?
+
+2. **Network motifs**: Build a 3-neuron network with a "feedback loop" (1→2→3→1). Compare its dynamics to a simple chain.
+
+3. **Heterogeneous network**: Create a network mixing HH and HR neurons. Use `ESynHHHRDoubleRK4` for cross-type connections.
+
+4. **Phase analysis**: For the CPG, compute the phase difference as a percentage of the cycle period. Is it stable at 50%?
+
+5. **Critical coupling**: Find the minimum coupling strength needed for a chain of 5 neurons to propagate a signal from first to last.
+
+6. **Oscillation frequency**: Modify CPG parameters to generate faster rhythms. Can you reach 10 Hz? 50 Hz?
+
+<details>
+<summary>Solution Hints</summary>
+
+**Ex 1**: Use different values for the two conductance parameters:
+```python
+synapse = neun_py.ESynHHHHDoubleRK4(h1, v, h2, v, -0.003, -0.001)
+```
+
+**Ex 3**: Mix neuron types by creating different neurons and using cross-type synapse classes:
+```python
+hh_neuron = neun_py.HHDoubleRK4(hh_args)
+hr_neuron = neun_py.HRDoubleRK4(hr_args)
+synapse = neun_py.ESynHHHRDoubleRK4(hh_neuron, hh_v, hr_neuron, hr_v, -g, -g)
+```
+
+**Ex 6**: Increase external drive `I` parameter in HR neurons for faster bursting.
+</details>
 
 ---
 

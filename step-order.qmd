@@ -1,0 +1,50 @@
+# Why Step Synapses Before Neurons?
+
+The order is important for **numerical accuracy and causality** in the simulation:
+
+## 1. **Causal Update Order**
+When you step a synapse, it computes the synaptic current based on the **current state** of the connected neurons (their voltages). This synaptic current then influences the neurons in the next time step. By stepping synapses first:
+
+```python
+# Time t → t+dt
+
+# Step 1: Compute synaptic currents based on neuron states at time t
+synapse.step(dt)  # Computes I_syn(t) from V1(t) and V2(t)
+
+# Step 2: Neurons integrate, including the synaptic current just computed
+neuron1.step(dt)  # Updates V1(t) → V1(t+dt) using I_syn(t)
+neuron2.step(dt)  # Updates V2(t) → V2(t+dt) using I_syn(t)
+```
+
+## 2. **Consistent Coupling**
+For electrical synapses, the coupling current is:
+$$I_{syn}(t) = g_{gap} \cdot (V_1(t) - V_2(t))$$
+
+If you step neurons first, the synapse would compute its current using the **new** voltages from time t+dt, but those voltages were computed without considering the synaptic coupling - creating an inconsistency.
+
+## 3. **Avoiding Feedback Loops**
+Wrong order can create artificial feedback:
+```python
+# WRONG ORDER - can cause instability
+neuron1.step(dt)  # V1 changes without considering synapse
+neuron2.step(dt)  # V2 changes without considering synapse
+synapse.step(dt)  # Computes current from already-updated voltages
+                  # This current won't affect neurons until NEXT iteration!
+```
+
+### 4. **Synchronization Between Synapses**
+When you have multiple synapses, stepping all synapses first ensures they all see the same "snapshot" of the network state:
+
+```python
+# All synapses evaluate at the same network state (time t)
+s12.step(dt)
+s23.step(dt)
+s31.step(dt)
+
+# Then all neurons update together (t → t+dt)
+n1.step(dt)
+n2.step(dt)
+n3.step(dt)
+```
+
+This is actually a general principle in **parallel simulation** - you want to maintain the illusion that everything happens simultaneously within each time step, even though you're computing things sequentially.
