@@ -30,9 +30,13 @@ The classic biophysical neuron model with sodium and potassium conductances:
 - Higher firing rate
 - Different spiking patterns
 
-#### 💻 Hands-on: 
-Try different values of currents... Can you find the model's limit? 
-Do you think a living neuron would have a similar limit?
+:::{.callout-tip}
+#### Hands-on
+
+Try different current values... 💻
+
+Can you find the **model's limit**? Do you think a living neuron would have a similar limit?
+:::
 
 ### Hindmarsh-Rose (HR)
 
@@ -42,7 +46,24 @@ A reduced model that can produce bursting and chaotic behavior:
 {{< include src/hr.py >}}
 ```
 
-<!-- @TODO change this by Explanation of what is chaotic ? -->
+:::{.callout-tip}
+#### Hands-on
+
+<!-- @TODO Add exercise to change between regular and chaotic -->
+Try changing the external current `I`... 💻
+
+Can you observe transitions between **regular spiking** and **chaotic bursting**?
+
+<details>
+<summary>Solution</summary>
+```python
+# Change I to observe different behaviors
+# I = 2.0  # Regular spiking
+I = 3.2  # Chaotic bursting
+```
+</details>
+:::
+
 
 ### Izhikevich (Iz)
 
@@ -59,6 +80,50 @@ When $V \geq 30$ mV: $V \to c$, $u \to u + d$
 
 ![Izhikevich neural activity types. From https://www.izhikevich.org/publications/spikes.htm](./images/izhik.gif){width=90%}
 
+```{.python filename="src/izhikevich.py"}
+{{< include src/izhikevich.py >}}
+```
+:::{.callout-tip}
+#### Hands-on
+
+Now it's your turn! 💻
+
+Try adding a new set of parameters `a`, `b`, `c`, and `d` to `neuron_types` dictionary, then see how they affect the firing patterns. Can you replicate the neuron types shown in the image above?
+
+<details>
+<summary>Solution</summary>
+```python
+# Here you have the complete set of parameters for different neuron types
+neuron_types = {
+    'Regular Spiking (RS)': {
+        'a': 0.02, 'b': 0.2, 'c': -65, 'd': 8,
+        'I_amp': 10, 'color': 'blue'
+    },
+    'Intrinsically Bursting (IB)': {
+        'a': 0.02, 'b': 0.2, 'c': -55, 'd': 4,
+        'I_amp': 10, 'color': 'green'
+    },
+    'Chattering (CH)': {
+        'a': 0.02, 'b': 0.2, 'c': -50, 'd': 2,
+        'I_amp': 10, 'color': 'red'
+    },
+    'Fast Spiking (FS)': {
+        'a': 0.1, 'b': 0.2, 'c': -65, 'd': 2,
+        'I_amp': 10, 'color': 'purple'
+    },
+    'Low-Threshold Spiking (LTS)': {
+        'a': 0.02, 'b': 0.25, 'c': -65, 'd': 2,
+        'I_amp': 10, 'color': 'orange'
+    },
+    'Resonator (RZ)': {
+        'a': 0.1, 'b': 0.26, 'c': -65, 'd': 2,
+        'I_amp': 3.5, 'color': 'brown'
+    }
+}
+```
+</details>
+:::
+
 ::: {.callout-important}
 ## Choosing Parameters
 
@@ -72,10 +137,6 @@ Izhikevich parameters:
 Different combinations produce different firing patterns!
 :::
 
-
-```{.python filename="src/izhikevich.py"}
-{{< include src/izhikevich.py >}}
-```
 :::
 
 ::: {.callout-important}
@@ -94,7 +155,10 @@ Different combinations produce different firing patterns!
 **Precision**: Use `Double` for most cases, `Float` for large-scale simulations
 :::
 
-## Visualizing variables in the model
+## Visualizing parameters and variables in the model
+
+<details>
+<summary>Obtaining parameter and variable values</summary>
 
 So far we have plot the voltage at each instant, but in the model we have access to all the parameters
 that conform the model. Try out this example of Hodgkin-Huxley model showing several variables:
@@ -102,9 +166,10 @@ that conform the model. Try out this example of Hodgkin-Huxley model showing sev
 ```{.python filename="src/hh-parameters.py"}
 {{< include src/hh-parameters.py >}}
 ```
+</details>
 
-## Parameter Exploration
-
+<details>
+<summary>Parameter exploration</summary>
 A key use of simulations is exploring parameter space which can be easily done in a model but can be quite of a challenge experimentally.
 
 ::: {.callout-tip}
@@ -121,18 +186,16 @@ A key use of simulations is exploring parameter space which can be easily done i
 {{< include src/parameter-exploration.py >}}
 ```
 
-When designing a model is frequent the need of analyzing a wide range of values 
-(and combinations of values), that task can be automatized by defining a range of exploration values
-for different parameters, as you have in the following example:
-
-```{.python filename="src/parameter-exploration-batch.py"}
-{{< include src/parameter-exploration-batch.py >}}
-```
-
-Sometimes it is also usefull to run a same model several times, varying 
+Sometimes it is also usefull to run the same model several times, varying 
 some parameters in the simulation, e.g., including a noisy input at different seeds. 
 You can design a loop for that purpose and analyze it directly on Python.
 You have an examples of batching in ```src/hh-multiple-trials.py``` and ```src/parameter-exploration-batch.py```
+
+</details>
+
+
+
+
 
 ## Input Patterns
 <!-- @TODO move to callout "to know more" -->

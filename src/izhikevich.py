@@ -4,26 +4,7 @@ neuron_types = {
         'a': 0.02, 'b': 0.2, 'c': -65, 'd': 8,
         'I_amp': 10, 'color': 'blue'
     },
-    'Intrinsically Bursting (IB)': {
-        'a': 0.02, 'b': 0.2, 'c': -55, 'd': 4,
-        'I_amp': 10, 'color': 'green'
-    },
-    'Chattering (CH)': {
-        'a': 0.02, 'b': 0.2, 'c': -50, 'd': 2,
-        'I_amp': 10, 'color': 'red'
-    },
-    'Fast Spiking (FS)': {
-        'a': 0.1, 'b': 0.2, 'c': -65, 'd': 2,
-        'I_amp': 10, 'color': 'purple'
-    },
-    'Low-Threshold Spiking (LTS)': {
-        'a': 0.02, 'b': 0.25, 'c': -65, 'd': 2,
-        'I_amp': 10, 'color': 'orange'
-    },
-    'Resonator (RZ)': {
-        'a': 0.1, 'b': 0.26, 'c': -65, 'd': 2,
-        'I_amp': 3.5, 'color': 'brown'
-    }
+    # You could add more neuron types here
 }
 
 # Simulate and plot
