@@ -31,8 +31,8 @@ cd workshop-neun
 
 2. Create a virtual environment (recommended):
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv quarto-neun-workshop
+source quarto-neun-workshop/bin/activate  # On Windows: quarto-neun-workshop\Scripts\activate
 ```
 
 3. Install dependencies:

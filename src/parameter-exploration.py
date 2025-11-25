@@ -25,10 +25,10 @@ for gna in gna_values:
     neuron.set_param(neun_py.HHDoubleParameter.gl, 0.3 * 7.854e-3)
     
     # Set initial conditions
-    neuron.set_var(neun_py.HHDoubleVariable.v, -80.0)
-    neuron.set_var(neun_py.HHDoubleVariable.m, 0.1)
-    neuron.set_var(neun_py.HHDoubleVariable.n, 0.7)
-    neuron.set_var(neun_py.HHDoubleVariable.h, 0.01)
+    neuron.set(neun_py.HHDoubleVariable.v, -80.0)
+    neuron.set(neun_py.HHDoubleVariable.m, 0.1)
+    neuron.set(neun_py.HHDoubleVariable.n, 0.7)
+    neuron.set(neun_py.HHDoubleVariable.h, 0.01)
     
     # Simulate and count spikes
     V = []

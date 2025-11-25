@@ -35,14 +35,14 @@ After the workshop, you can:
 
 Computational neuroscience bridges the gap between experimental observations and theoretical understanding of neural systems. This workshop will guide you through:
 
-1. **Theoretical Foundations**: Understanding why and how we model neural systems
+1. **Theoretical Foundations**: Understanding why and how to model neural systems
 2. **Practical Skills**: Learning to use the Neun library for neural simulations
-3. **Real Applications**: Connecting models to experimental findings
+3. **Real Applications**: Understanding how to use the models as a complement to experimental findings
 
 ## The Neun Library
 
 [Neun](https://github.com/GNB-UAM/Neun/) is a C++ library for simulating neuronal networks. 
-
+You can directly work in C++ or use our [Python bindings](https://github.com/GNB-UAM/neun_py) to directly simulate your models in Python. 
 
 
 ## Workshop Structure
@@ -91,34 +91,6 @@ In your system, please ensure you have:
 1. **Python 3.7 or higher**, with development headers, installed on your computer
 2. **C++ compiler** with C++20 support (GCC 10+, Clang 10+)
 
-### Installation
-
-```bash
-# Clone the workshop repository
-git clone https://github.com/angellareo/neun_py.git
-cd neun_py
-
-# Create a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install neun_py
-pip install neun_py
-```
-
-### Testing Your Setup
-
-Run this quick test to verify your installation:
-
-```python
-import neun
-import numpy as np
-import matplotlib.pyplot as plt
-
-print("All dependencies are installed correctly!")
-print(f"Neun version: {neun.__version__}")
-```
-
 ## Workshop Materials
 
 Navigate through the workshop using the menu above:
@@ -132,7 +104,7 @@ Navigate through the workshop using the menu above:
 ## Additional Resources
 
 - [Neun GitHub Repository](https://github.com/GNB-UAM/Neun/)
-- [Neun Documentation](https://github.com/GNB-UAM/Neun/)
+- [Neun Python Bindings Documentation](https://gnb-uam.github.io/neun_py/getting-started/quickstart/)
 
 
 ---

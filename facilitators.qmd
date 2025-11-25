@@ -4,4 +4,4 @@
 Assistant Professor at Universidad Autónoma de Madrid. PhD in computational neuroscience. His work focuses on neural network modeling and XXX
 
 ### Dr. Alicia Garrido-Peña
-Assistant Professor at Universidad Autónoma de Madrid. PhD in computational neuroscience. Her work focuses on XXX
+Assistant Professor at Universidad Autónoma de Madrid. PhD in computational neuroscience. Her work focuses on Computational Neuroscience, trying to unveil neural dynamics from a hybrid and multidisciplinary approach: through electrophysiology experiments, computational models, and closed-loop real-time activity-dependent stimulation. As an early career researcher she is currently exploring other research paths in the field, such as the modeling of complex networks for cognitive neuroscience and the neurological problems caused by the addictive use of smartphones. Her other interests include, computer science, FLOSS and open and inclusive science. (https://agarpe.github.io/)

@@ -1,5 +1,5 @@
 ---
-title: "Part 4: Building Neural Networks"
+title: "2.3: Building Neural Networks"
 subtitle: "From Single Neurons to Connected Populations"
 format:
   html:

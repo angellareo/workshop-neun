@@ -1,5 +1,5 @@
 ---
-title: "Part 3: Modeling Neurons"
+title: "2.2: Modeling Neurons"
 subtitle: "Deep Dive into Neuron Models with Neun"
 format:
   html:
@@ -12,165 +12,38 @@ format:
 
 In this section, we'll explore single neuron models in depth, understanding their properties, behaviors, and how to use them effectively with Neun. While single neurons may seem simple, they exhibit rich dynamics that are essential for understanding network behavior.
 
-## The Hodgkin-Huxley Model
+## Exploring Neuron Models
 
-### Review of the Model
+### Hodgkin-Huxley (HH)
 
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-import neun
+The classic biophysical neuron model with sodium and potassium conductances:
 
-# Create a Hodgkin-Huxley neuron
-hh_neuron = neun.models.HodgkinHuxley()
+![Hodgkin-Huxley formalism equations](./images/HH-equations.png){width=80%}
 
-# Simulation parameters
-dt = 0.01  # ms
-T = 100    # ms
-n_steps = int(T / dt)
-
-# Record membrane potential
-V_trace = []
-t_trace = []
-
-# Reset the neuron
-hh_neuron.reset()
-
-# Constant input current
-I_input = 10.0  # µA/cm²
-
-for step in range(n_steps):
-    t = step * dt
-    hh_neuron.step(dt, I_input)
-    V_trace.append(hh_neuron.V)
-    t_trace.append(t)
-
-# Plot
-plt.figure(figsize=(12, 4))
-plt.plot(t_trace, V_trace, linewidth=2)
-plt.xlabel('Time (ms)', fontsize=12)
-plt.ylabel('Membrane Potential (mV)', fontsize=12)
-plt.title('Hodgkin-Huxley Neuron Response', fontsize=14)
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
+```{.python filename="src/hh.py"}
+{{< include src/hh.py >}}
 ```
 
-### Response to Different Input Patterns
+**Observation**: Higher external current leads to:
+- More frequent action potentials
+- Higher firing rate
+- Different spiking patterns
 
-#### Subthreshold Responses
+#### 💻 Hands-on: 
+Try different values of currents... Can you find the model's limit? 
+Do you think a living neuron would have a similar limit?
 
-```python
-# Test subthreshold responses with different currents
-I_values = [0, 2, 4, 6]  # µA/cm²
-T = 50
-n_steps = int(T / dt)
+### Hindmarsh-Rose (HR)
 
-fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-axes = axes.flatten()
+A reduced model that can produce bursting and chaotic behavior:
 
-for idx, I_amp in enumerate(I_values):
-    hh_neuron.reset()
-    V_trace = []
-    t_trace = []
-    
-    for step in range(n_steps):
-        t = step * dt
-        hh_neuron.step(dt, I_amp)
-        V_trace.append(hh_neuron.V)
-        t_trace.append(t)
-    
-    axes[idx].plot(t_trace, V_trace, linewidth=2)
-    axes[idx].set_xlabel('Time (ms)')
-    axes[idx].set_ylabel('V (mV)')
-    axes[idx].set_title(f'I = {I_amp} µA/cm²')
-    axes[idx].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
+```{.python filename="src/hr.py"}
+{{< include src/hr.py >}}
 ```
 
-#### Spike Generation
+<!-- @TODO change this by Explanation of what is chaotic ? -->
 
-```python
-# Explore spike generation with increasing currents
-I_values = np.linspace(0, 20, 5)
-T = 100
-n_steps = int(T / dt)
-
-fig, axes = plt.subplots(len(I_values), 1, figsize=(12, 10), sharex=True)
-
-for idx, I_amp in enumerate(I_values):
-    hh_neuron.reset()
-    V_trace = []
-    t_trace = []
-    
-    for step in range(n_steps):
-        t = step * dt
-        hh_neuron.step(dt, I_amp)
-        V_trace.append(hh_neuron.V)
-        t_trace.append(t)
-    
-    axes[idx].plot(t_trace, V_trace, linewidth=1.5)
-    axes[idx].set_ylabel('V (mV)')
-    axes[idx].set_title(f'I = {I_amp:.1f} µA/cm²', fontsize=10)
-    axes[idx].grid(True, alpha=0.3)
-
-axes[-1].set_xlabel('Time (ms)')
-plt.tight_layout()
-plt.show()
-```
-
-### F-I Curve Analysis
-
-The relationship between input current and firing rate is fundamental:
-
-```python
-# Compute F-I curve
-I_range = np.linspace(0, 30, 30)
-firing_rates = []
-
-T = 500  # Longer simulation for accurate rate estimation
-n_steps = int(T / dt)
-
-for I_amp in I_range:
-    hh_neuron.reset()
-    spike_count = 0
-    prev_V = hh_neuron.V
-    
-    for step in range(n_steps):
-        hh_neuron.step(dt, I_amp)
-        # Detect spikes (crossing threshold)
-        if prev_V < 0 and hh_neuron.V >= 0:
-            spike_count += 1
-        prev_V = hh_neuron.V
-    
-    firing_rate = (spike_count / T) * 1000  # Convert to Hz
-    firing_rates.append(firing_rate)
-
-# Plot F-I curve
-plt.figure(figsize=(10, 6))
-plt.plot(I_range, firing_rates, 'o-', linewidth=2, markersize=6)
-plt.xlabel('Input Current (µA/cm²)', fontsize=12)
-plt.ylabel('Firing Rate (Hz)', fontsize=12)
-plt.title('F-I Curve for Hodgkin-Huxley Neuron', fontsize=14)
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-```
-
-::: {.callout-tip}
-## Understanding F-I Curves
-
-The F-I curve tells us:
-
-- **Rheobase**: Minimum current for spiking
-- **Gain**: Slope of the curve (sensitivity to input)
-- **Saturation**: Maximum firing rate (limited by refr period)
-- **Linearity**: Linear for LIF, nonlinear for other models
-:::
-
-## The Izhikevich Model
+### The Izhikevich Model
 
 The Izhikevich model can reproduce many different firing patterns with just 4 parameters:
 
@@ -183,74 +56,7 @@ $$
 
 When $V \geq 30$ mV: $V \to c$, $u \to u + d$
 
-### Different Neuron Types
-
-```python
-# Dictionary of Izhikevich parameters for different cell types
-neuron_types = {
-    'Regular Spiking (RS)': {
-        'a': 0.02, 'b': 0.2, 'c': -65, 'd': 8,
-        'I_amp': 10, 'color': 'blue'
-    },
-    'Intrinsically Bursting (IB)': {
-        'a': 0.02, 'b': 0.2, 'c': -55, 'd': 4,
-        'I_amp': 10, 'color': 'green'
-    },
-    'Chattering (CH)': {
-        'a': 0.02, 'b': 0.2, 'c': -50, 'd': 2,
-        'I_amp': 10, 'color': 'red'
-    },
-    'Fast Spiking (FS)': {
-        'a': 0.1, 'b': 0.2, 'c': -65, 'd': 2,
-        'I_amp': 10, 'color': 'purple'
-    },
-    'Low-Threshold Spiking (LTS)': {
-        'a': 0.02, 'b': 0.25, 'c': -65, 'd': 2,
-        'I_amp': 10, 'color': 'orange'
-    },
-    'Resonator (RZ)': {
-        'a': 0.1, 'b': 0.26, 'c': -65, 'd': 2,
-        'I_amp': 3.5, 'color': 'brown'
-    }
-}
-
-# Simulate and plot
-dt = 0.1
-T = 200
-n_steps = int(T / dt)
-
-fig, axes = plt.subplots(3, 2, figsize=(14, 10))
-axes = axes.flatten()
-
-for idx, (name, params) in enumerate(neuron_types.items()):
-    # Create Izhikevich neuron with specific parameters
-    neuron = neun.models.Izhikevich(
-        a=params['a'], 
-        b=params['b'], 
-        c=params['c'], 
-        d=params['d']
-    )
-    
-    V_trace = []
-    t_trace = []
-    
-    for step in range(n_steps):
-        t = step * dt
-        neuron.step(dt, params['I_amp'])
-        V_trace.append(neuron.V)
-        t_trace.append(t)
-    
-    axes[idx].plot(t_trace, V_trace, color=params['color'], linewidth=1.5)
-    axes[idx].set_title(name, fontsize=11, fontweight='bold')
-    axes[idx].set_ylabel('V (mV)')
-    axes[idx].grid(True, alpha=0.3)
-    axes[idx].set_ylim([-80, 40])
-
-axes[-2].set_xlabel('Time (ms)')
-axes[-1].set_xlabel('Time (ms)')
-plt.tight_layout()
-plt.show()
-```
+![Izhikevich neural activity types. From https://www.izhikevich.org/publications/spikes.htm](./images/izhik.gif){width=90%}
 
 ::: {.callout-important}
 ## Choosing Parameters
@@ -265,12 +71,80 @@ Izhikevich parameters:
 Different combinations produce different firing patterns!
 :::
 
+
+```{.python filename="src/izhikevich.py"}
+{{< include src/izhikevich.py >}}
+```
+
+::: {.callout-important}
+## Choosing a Neuron Model
+
+- **HH (Hodgkin-Huxley)**: Biophysically detailed, captures ion channel dynamics
+- **HR (Hindmarsh-Rose)**: Bursting and chaotic behavior, moderate complexity
+- **Izhikevich**: Various firing patterns with simple equations
+
+**Integrator Selection**:
+
+- **RK4**: Best balance of accuracy and speed (recommended)
+- **RK6**: Higher accuracy for sensitive systems
+- **Euler**: Fast but less accurate
+
+**Precision**: Use `Double` for most cases, `Float` for large-scale simulations
+:::
+
+## Visualizing variables in the model
+
+So far we have plot the voltage at each instant, but in the model we have access to all the parameters
+that conform the model. Try out this example of Hodgkin-Huxley model showing several variables:
+
+```{.python filename="src/hh-parameters.py"}
+{{< include src/hh-parameters.py >}}
+```
+
+## Parameter Exploration
+
+A key use of simulations is exploring parameter space which can be easily done in a model but can be quite of a challenge experimentally.
+
+::: {.callout-tip}
+## Parameter Exploration Tips
+
+1. **Start with wide ranges** to understand overall behavior
+2. **Refine** around interesting regions
+3. **Vary one parameter at a time** initially
+4. **Use multiple metrics** (firing rate, CV of ISI, etc.)
+5. **Compare with experimental data** when available
+:::
+
+```{.python filename="src/parameter-exploration.py"}
+{{< include src/parameter-exploration.py >}}
+```
+
+When designing a model is frequent the need of analyzing a wide range of values 
+(and combinations of values), that task can be automatized by defining a range of exploration values
+for different parameters, as you have in the following example:
+
+```{.python filename="src/parameter-exploration-batch.py"}
+{{< include src/parameter-exploration-batch.py >}}
+```
+
+Sometimes it is also usefull to run a same model several times, varying 
+some parameters in the simulation, e.g., including a noisy input at different seeds. 
+You can design a loop for that purpose and analyze it directly on Python.
+You have an examples of batching in ```src/hh-multiple-trials.py``` and ```src/parameter-exploration-batch.py```
+
+## Input Patterns
+<!-- @TODO move to callout "to know more" -->
+
+So far we have just included fixed real (float) values in 
+the example models, but Neun supports [various input patterns](input-patterns.qmd) through `add_synaptic_input()`,
+such as ramp current, sinusoidal currents, pulse trains...
+
 ## Noise and Variability
 
 Real neurons operate in noisy environments. Let's explore how noise affects spiking in two ways. First, by adding noise as a synaptic current input. Then, by using the chaotic regime of some neuron models.
 
 ::: {.callout-note}
-## Chaos vs Noise
+### Chaos vs Noise
 
 The chaotic HR model demonstrates **deterministic chaos**: irregular behavior arising from deterministic equations without any random input. This is fundamentally different from noise-driven variability:
 
@@ -282,280 +156,32 @@ Both produce irregular spike patterns, but chaos is intrinsic to the neuron's dy
 
 ### Noisy Input Current
 
-```python
-# Compare responses to clean vs noisy input
-dt = 0.1
-T = 500
-n_steps = int(T / dt)
-
-# Base current
-I_base = 10.0
-noise_std = 3.0
-
-# Generate noisy current
-np.random.seed(42)
-I_clean = np.ones(n_steps) * I_base
-I_noisy = I_base + np.random.randn(n_steps) * noise_std
-
-# Simulate both conditions
-lif_neuron = neun.models.LIF(tau_m=20.0, V_th=-50.0, V_reset=-70.0, V_rest=-65.0)
-
-# Clean input
-V_clean = []
-t_trace = []
-lif_neuron.reset()
-for step in range(n_steps):
-    t = step * dt
-    lif_neuron.step(dt, I_clean[step])
-    V_clean.append(lif_neuron.V)
-    t_trace.append(t)
-
-# Noisy input
-V_noisy = []
-lif_neuron.reset()
-for step in range(n_steps):
-    lif_neuron.step(dt, I_noisy[step])
-    V_noisy.append(lif_neuron.V)
-
-# Plot comparison
-fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
-
-axes[0].plot(t_trace, V_clean, linewidth=1.5, label='Clean Input')
-axes[0].set_ylabel('V (mV)')
-axes[0].set_title('Response to Clean Input')
-axes[0].grid(True, alpha=0.3)
-axes[0].legend()
-
-axes[1].plot(t_trace, V_noisy, linewidth=1.5, color='orange', label='Noisy Input')
-axes[1].set_xlabel('Time (ms)')
-axes[1].set_ylabel('V (mV)')
-axes[1].set_title('Response to Noisy Input')
-axes[1].grid(True, alpha=0.3)
-axes[1].legend()
-
-plt.tight_layout()
-plt.show()
+```{.python filename="src/noisy-input.py"}
+{{< include src/noisy-input.py >}}
 ```
 
 ### Chaotic regime 
-```python
-# Chaotic Hindmarsh-Rose model
-# The HR model can exhibit chaotic dynamics without external noise
-# Parameters for chaotic behavior: a=1.0, b=3.0, c=1.0, d=5.0, r=0.001, s=4.0, x_rest=-1.6
 
-hr_neuron = neun.models.HindmarshRose(
-    a=1.0, 
-    b=3.0, 
-    c=1.0, 
-    d=5.0, 
-    r=0.001,  # Slow recovery - key for chaos
-    s=4.0, 
-    x_rest=-1.6
-)
 
-dt = 0.1
-T = 1000  # Longer time to see chaotic behavior
-n_steps = int(T / dt)
-
-# Constant input current (no external noise needed!)
-I_input = 3.2
-
-V_trace = []
-y_trace = []  # Recovery variable
-z_trace = []  # Slow adaptation variable
-t_trace = []
-
-hr_neuron.reset()
-for step in range(n_steps):
-    t = step * dt
-    hr_neuron.step(dt, I_input)
-    V_trace.append(hr_neuron.V)
-    y_trace.append(hr_neuron.y)
-    z_trace.append(hr_neuron.z)
-    t_trace.append(t)
-
-# Plot the chaotic dynamics
-fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
-
-axes[0].plot(t_trace, V_trace, linewidth=0.8, color='darkblue')
-axes[0].set_ylabel('Membrane Potential (x)', fontsize=12)
-axes[0].set_title('Chaotic Hindmarsh-Rose Neuron (No External Noise!)', fontsize=14, fontweight='bold')
-axes[0].grid(True, alpha=0.3)
-
-axes[1].plot(t_trace, y_trace, linewidth=0.8, color='darkgreen')
-axes[1].set_ylabel('Recovery (y)', fontsize=12)
-axes[1].grid(True, alpha=0.3)
-
-axes[2].plot(t_trace, z_trace, linewidth=0.8, color='darkred')
-axes[2].set_xlabel('Time (ms)', fontsize=12)
-axes[2].set_ylabel('Adaptation (z)', fontsize=12)
-axes[2].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-
-# Phase space plot to visualize chaos
-fig = plt.figure(figsize=(12, 5))
-
-ax1 = fig.add_subplot(121, projection='3d')
-ax1.plot(V_trace, y_trace, z_trace, linewidth=0.5, alpha=0.6)
-ax1.set_xlabel('x (membrane potential)')
-ax1.set_ylabel('y (recovery)')
-ax1.set_zlabel('z (adaptation)')
-ax1.set_title('3D Phase Space - Chaotic Attractor')
-
-ax2 = fig.add_subplot(122)
-ax2.plot(V_trace, y_trace, linewidth=0.5, alpha=0.6)
-ax2.set_xlabel('x (membrane potential)')
-ax2.set_ylabel('y (recovery)')
-ax2.set_title('2D Projection (x-y plane)')
-ax2.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
+```{.python filename="src/chaotic-regime.py"}
+{{< include src/chaotic-regime.py >}}
 ```
 
-### Coefficient of Variation (CV) of ISI
+### Analyzing the change: Coefficient of Variation (CV) of ISI
 
 The CV quantifies spike time variability:
 
-```python
-# Analyze spike time variability
-def compute_ISI_stats(neuron, I_input, dt, T):
-    """Compute inter-spike interval statistics."""
-    n_steps = int(T / dt)
-    spike_times = []
-    prev_V = neuron.V
-    
-    neuron.reset()
-    for step in range(n_steps):
-        t = step * dt
-        if isinstance(I_input, np.ndarray):
-            neuron.step(dt, I_input[step])
-        else:
-            neuron.step(dt, I_input)
-        
-        # Detect spike (works for both LIF and HR)
-        if hasattr(neuron, 'V_th'):
-            # LIF model
-            if prev_V < neuron.V_th and neuron.V >= neuron.V_th:
-                spike_times.append(t)
-        else:
-            # HR model - detect peaks above threshold
-            if step > 0 and len(spike_times) == 0:
-                prev_V = neuron.V
-                continue
-            if step > 1:
-                V_prev2 = V_trace_local[step-2] if 'V_trace_local' in locals() else prev_V
-                if prev_V > neuron.V and prev_V > 0:  # Peak detection
-                    if len(spike_times) == 0 or t - spike_times[-1] > 5:  # Avoid double counting
-                        spike_times.append(t)
-        
-        prev_V = neuron.V
-    
-    if len(spike_times) < 2:
-        return None, None
-    
-    ISIs = np.diff(spike_times)
-    mean_ISI = np.mean(ISIs)
-    std_ISI = np.std(ISIs)
-    CV = std_ISI / mean_ISI if mean_ISI > 0 else 0
-    
-    return ISIs, CV
-
-
-def compute_ISI_stats_HR(neuron, I_input, dt, T, threshold=0):
-    """Specialized ISI computation for HR model using peak detection."""
-    n_steps = int(T / dt)
-    spike_times = []
-    V_prev = None
-    V_curr = neuron.V
-    
-    neuron.reset()
-    for step in range(n_steps):
-        t = step * dt
-        V_prev2 = V_prev
-        V_prev = V_curr
-        
-        neuron.step(dt, I_input)
-        V_curr = neuron.V
-        
-        # Detect peaks: V_prev is a local maximum above threshold
-        if V_prev2 is not None and V_prev is not None:
-            if V_prev > V_prev2 and V_prev > V_curr and V_prev > threshold:
-                # Avoid double-counting nearby peaks
-                if len(spike_times) == 0 or (t - dt) - spike_times[-1] > 5:
-                    spike_times.append(t - dt)
-    
-    if len(spike_times) < 2:
-        return None, None
-    
-    ISIs = np.diff(spike_times)
-    mean_ISI = np.mean(ISIs)
-    std_ISI = np.std(ISIs)
-    CV = std_ISI / mean_ISI if mean_ISI > 0 else 0
-    
-    return ISIs, CV
-
-
-# Compare CV for different noise levels (LIF) and chaotic HR
-noise_levels = [0, 1, 2, 3, 4, 5]
-CVs_LIF = []
-T = 2000
-dt = 0.1
-
-# LIF with different noise levels
-for noise_std in noise_levels:
-    lif_neuron = neun.models.LIF(tau_m=20.0, V_th=-50.0, V_reset=-70.0, V_rest=-65.0)
-    n_steps = int(T / dt)
-    I_input = 10.0 + np.random.randn(n_steps) * noise_std
-    
-    ISIs, CV = compute_ISI_stats(lif_neuron, I_input, dt, T)
-    CVs_LIF.append(CV if CV is not None else 0)
-
-# Chaotic HR (no noise needed)
-hr_neuron = neun.models.HindmarshRose(
-    a=1.0, b=3.0, c=1.0, d=5.0, r=0.001, s=4.0, x_rest=-1.6
-)
-ISIs_HR, CV_HR = compute_ISI_stats_HR(hr_neuron, I_input=3.2, dt=dt, T=T)
-
-# Plot comparison
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-
-# CV vs noise for LIF
-ax1.plot(noise_levels, CVs_LIF, 'o-', linewidth=2, markersize=8, label='LIF + Noise')
-ax1.axhline(y=CV_HR if CV_HR else 0, color='red', linestyle='--', linewidth=2, 
-            label=f'Chaotic HR (CV={CV_HR:.3f})')
-ax1.axhline(y=0.5, color='gray', linestyle=':', alpha=0.5, label='Irregular firing')
-ax1.axhline(y=1.0, color='gray', linestyle=':', alpha=0.5, label='Highly variable')
-ax1.set_xlabel('Noise Level (std)', fontsize=12)
-ax1.set_ylabel('Coefficient of Variation (CV)', fontsize=12)
-ax1.set_title('LIF: Effect of External Noise on Variability', fontsize=13)
-ax1.legend()
-ax1.grid(True, alpha=0.3)
-
-# ISI distributions
-if ISIs_HR is not None:
-    # Get ISIs for LIF with moderate noise for comparison
-    lif_neuron = neun.models.LIF(tau_m=20.0, V_th=-50.0, V_reset=-70.0, V_rest=-65.0)
-    I_input_noisy = 10.0 + np.random.randn(int(T/dt)) * 3.0
-    ISIs_LIF, _ = compute_ISI_stats(lif_neuron, I_input_noisy, dt, T)
-    
-    if ISIs_LIF is not None:
-        ax2.hist(ISIs_LIF, bins=30, alpha=0.6, label='LIF + Noise (σ=3)', 
-                 color='blue', density=True)
-        ax2.hist(ISIs_HR, bins=30, alpha=0.6, label='Chaotic HR', 
-                 color='red', density=True)
-        ax2.set_xlabel('Inter-Spike Interval (ms)', fontsize=12)
-        ax2.set_ylabel('Probability Density', fontsize=12)
-        ax2.set_title('ISI Distributions: Noise vs Chaos', fontsize=13)
-        ax2.legend()
-        ax2.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-
-print(f"\nVariability Comparison:")
-print(f"LIF with noise (σ=3): CV = {CVs_LIF[3]:.3f}")
-print(f"Chaotic HR (no noise): CV = {CV_HR:.3f}" if CV_HR else "Chaotic HR: No spikes detected")
+```{.python filename="src/cv-isis.py"}
+{{< include src/cv-isis.py >}}
 ```
+
+### Exercises
+
+Try these exercises to solidify your understanding:
+
+1. **Parameter Sweep**: Create a 2D parameter sweep varying both `gna` and `gk` in the HH model
+2. **Integrator Comparison**: Compare RK4 vs RK6 integrators for the same HH neuron
+3. **Phase Plane**: Plot the (V, n) phase plane for the HH model
+4. **Coupling Strength**: Explore how synapse conductance affects synchronization between two HR neurons
+5. **Noise Effects**: Compare firing patterns with different noise levels in the input current
+
