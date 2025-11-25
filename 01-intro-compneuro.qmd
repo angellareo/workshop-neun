@@ -83,7 +83,7 @@ The appropriate level of modeling depends on your question:
 
 Neurons encode information by using electrical signals. Their membrane potential changes in response to internal states and external stimuli. As a result, neurons produce action potentials (spikes).
 
-![Action Potential Propagation](https://upload.wikimedia.org/wikipedia/commons/7/7d/Neuron_action_potential.webm){width=80%}
+![Action Potential Propagation](https://upload.wikimedia.org/wikipedia/commons/transcoded/2/23/Neuron_action_potential.webm/Neuron_action_potential.webm.1080p.vp9.webm?download){width=80%}
 
 *Video showing action potential propagation through a neuron. Source: Wikimedia Commons*
 
