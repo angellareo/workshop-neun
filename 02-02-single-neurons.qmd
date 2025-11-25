@@ -143,7 +143,7 @@ such as ramp current, sinusoidal currents, pulse trains...
 
 ## Noise and Variability
 
-Real neurons operate in noisy environments. Let's explore how noise affects spiking in two ways. First, by adding noise as a synaptic current input. Then, by using the chaotic regime of some neuron models.
+Real neurons operate in noisy environments. Noise affects spiking in two ways, so let's explore them. First, we'll simulate it by adding noise as a synaptic current input. Then, we'll use the chaotic regime of Hindmarsh-Rose.
 
 ::: {.callout-note}
 ### Chaos vs Noise
@@ -156,6 +156,7 @@ The chaotic HR model demonstrates **deterministic chaos**: irregular behavior ar
 Both produce irregular spike patterns, but chaos is intrinsic to the neuron's dynamics!
 :::
 
+:::{.panel-tabset}
 ### Noisy Input Current
 
 ```{.python filename="src/noisy-input.py"}
@@ -168,6 +169,7 @@ Both produce irregular spike patterns, but chaos is intrinsic to the neuron's dy
 ```{.python filename="src/chaotic-regime.py"}
 {{< include src/chaotic-regime.py >}}
 ```
+:::
 
 ### Analyzing the change: Coefficient of Variation (CV) of ISI
 
