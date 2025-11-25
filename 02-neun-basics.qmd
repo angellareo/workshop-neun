@@ -217,6 +217,8 @@ The basic Neun workflow consists of:
 
 The classic biophysical neuron model with sodium and potassium conductances:
 
+![Hodgkin-Huxley formalism equations](./images/HH-equations.png){width=80%}
+
 ```{.python filename="src/hh.py"}
 {{< include src/hh.py >}}
 ```
