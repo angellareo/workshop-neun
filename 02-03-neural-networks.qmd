@@ -26,7 +26,14 @@ Neun provides two main types of synaptic connections, each with distinct propert
 
 ### Electrical Synapses
 
-Electrical synapses (gap junctions) provide **direct electrical coupling** between neurons through protein channels that connect their cytoplasm. This creates:
+Electrical synapses (gap junctions) provide **direct electrical coupling** between neurons through protein channels that connect their cytoplasm. 
+
+The current through a gap junction is proportional to the voltage difference:
+$$I_{syn} = g_{gap} \cdot (V_1 - V_2)$$
+
+where $g_{gap}$ is the gap junction conductance (typically 0.001-0.01).
+
+This creates:
 
 - **Instantaneous transmission**: No synaptic delay
 - **Bidirectional communication**: Current flows both ways
@@ -37,15 +44,6 @@ Electrical synapses (gap junctions) provide **direct electrical coupling** betwe
 ```{.python filename="src/electrical-synapse.py"}
 {{< include src/electrical-synapse.py >}}
 ```
-
-::: {.callout-note}
-## Gap Junction Physics
-
-The current through a gap junction is proportional to the voltage difference:
-$$I_{syn} = g_{gap} \cdot (V_1 - V_2)$$
-
-where $g_{gap}$ is the gap junction conductance (typically 0.001-0.01).
-:::
 
 :::{.callout-tip}
 #### Hands-on
@@ -72,12 +70,12 @@ Diffusion synapses model **chemical-like coupling** with time-dependent dynamics
 ```{.python filename="src/diffusion-synapse.py"}
 {{< include src/diffusion-synapse.py >}}
 ```
-
+<!-- 
 ::: {.callout-note}
 ## Diffusion vs Electrical
 
 While diffusion synapses include dynamics, they're still simplified compared to full chemical synapses. For more realistic chemical transmission (with neurotransmitter release, receptors, etc.), you'd need additional mechanisms.
-:::
+::: -->
 
 :::{.callout-tip}
 #### Hands-on
