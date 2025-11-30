@@ -243,4 +243,4 @@ Now that you're familiar with Neun basics, we'll move on to:
 
 ---
 
-**Continue to [2.2: Modeling Neurons](03-single-neurons.qmd)**
+**Continue to [2.2: Modeling Neurons](02-02-single-neurons.qmd)**

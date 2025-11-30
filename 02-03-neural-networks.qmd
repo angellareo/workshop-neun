@@ -440,4 +440,4 @@ synapse = neun_py.ESynHHHRDoubleRK4(hh_neuron, hh_v, hr_neuron, hr_v, -g, -g)
 
 ---
 
-👉 **Continue to [Part 5: Conclusions](05-conclusions.qmd)**
+👉 **Continue to [Part 5: Conclusions](03-conclusions.qmd)**

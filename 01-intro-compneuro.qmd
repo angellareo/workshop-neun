@@ -214,7 +214,7 @@ In the next sections, we'll:
 
 ---
 
-👉 **Continue to [Part 2: Getting Started with Neun](02-neun-basics.qmd)**
+👉 **Continue to [Part 2: Getting Started with Neun](02-01-neun-basics.qmd)**
 
 ## References
 
