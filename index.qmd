@@ -96,10 +96,11 @@ In your system, please ensure you have:
 Navigate through the workshop using the menu above:
 
 - **[Part 1: Computational Neuroscience](01-intro-compneuro.qmd)** - Theoretical foundations
-- **[Part 2: Neun Basics](02-neun-basics.qmd)** - Getting started with the library
-- **[Single Neurons](03-single-neurons.qmd)** - Modeling individual neurons
-- **[Neural Networks](04-neural-networks.qmd)** - Building connected networks
-- **[Conclusions](05-conclusions.qmd)** - Complex modeling scenarios
+- **Part 2: Hands-on with Neun**
+  - **[Neun Basics](02-01-neun-basics.qmd)** - Getting started with the library
+  - **[Single Neurons](02-02-single-neurons.qmd)** - Modeling individual neurons
+  - **[Networks](02-03-neural-networks.qmd)** - Building connected networks
+- **[Conclusions](03-conclusions.qmd)** - Wrap-up
 
 ## Additional Resources
 
