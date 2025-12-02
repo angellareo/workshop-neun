@@ -251,3 +251,5 @@ Try these exercises to solidify your understanding:
 3. **Phase plane**: Plot the (V, n) phase plane for the HH model
 4. **Noise effects**: Compare firing patterns with different noise levels in the input current
 
+
+**Continue to [2.3: Modeling Neural Networks](02-03-neural-networks.qmd)**
