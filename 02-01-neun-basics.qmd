@@ -211,18 +211,6 @@ The basic Neun workflow consists of:
 7. **Read state** using `neuron.get(variable_enum)`
 :::
 
-## Summary
-
-In this section, we've learned:
-<!-- @TODO revisar estos puntos -->
-
-- ✅ How to install Neun C++ library and neun_py Python bindings
-- ✅ Basic architecture: neurons, synapses, integrators, parameters/variables
-- ✅ Creating and simulating Hodgkin-Huxley neurons with neun_py
-- ✅ Manual recording and analyzing results
-- ✅ Parameter exploration and sweeps
-- ✅ Best practices for simulation code
-
 ::: {.callout-note}
 ## Key Takeaways
 
