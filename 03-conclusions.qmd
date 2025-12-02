@@ -1,0 +1,38 @@
+---
+title: "Conclusions"
+subtitle: "Reflections on Computational Neuroscience and Neural Modeling"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+---
+
+Computational neuroscience provides a framework for understanding the brain by combining theoretical, experimental, and computational approaches. By abstracting complex neural systems into models, we can uncover principles that govern brain function, predict behavior, and guide experiments in ways that would be difficult with observation alone.
+
+Key insights include:
+
+- **Modeling as a tool for understanding**: Models are not just simulations; they are ways to formalize hypotheses, test ideas, and explore “what-if” scenarios in a controlled setting.  
+- **Levels of abstraction matter**: Different questions require different modeling approaches, from detailed biophysical models to abstract system-level representations. Choosing the right level of detail is essential for balancing insight and computational efficiency.  
+- **Emergent behavior arises from interactions**: Neural networks exhibit behaviors that are not present in single neurons, highlighting the importance of connectivity, dynamics, and feedback.  
+- **Integration is essential**: Combining computational models with experimental data strengthens predictions, validates theories, and provides deeper understanding than either approach alone.  
+- **Iterative refinement drives progress**: Modeling is a cyclical process: build, simulate, analyze, compare with data, and refine. This iterative loop accelerates learning and discovery in neuroscience.  
+- **Tools empower exploration**: Software frameworks and simulation libraries enable rapid prototyping, reproducibility, and scalability, allowing researchers to focus on the science rather than implementation details.
+
+Ultimately, computational models serve as a bridge between intuition and experiment, allowing us to explore the principles of neural computation, predict outcomes, and uncover mechanisms that underlie cognition and behavior. Embracing these approaches equips researchers with a versatile toolkit for both discovery and innovation in neuroscience.
+
+---
+# Neun
+Neun is a open-source tool for modelling and efficient simulation, thanks to its implementation in C++.
+We have seen along the workshop how to implement different models and some of the many different things we can do when simulating neuronal activity. 
+
+---
+
+# Your turn!
+Now you have Neun in your power, and the knowledge to use it, so use it wisely ;).
+And remember, you can also contribute to the project via pull request and include any model that you want.
+
+Contact us if you have any questions or want to develop something together!
+
+    angel.lareo@uam.es 
+    alicia.garrido@uam.es
