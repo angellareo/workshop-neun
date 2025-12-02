@@ -7,37 +7,39 @@ import neun_py
 import matplotlib.pyplot as plt
 import numpy as np
 
-def create_hr_neuron(I_ext=3.0):
+def create_hr_neuron(I_ext=3.0, ini_x=0):
     """Create Hindmarsh-Rose neuron (good for rhythmic activity)"""
     neuron_args = neun_py.HRDoubleConstructorArgs()
     neuron = neun_py.HRDoubleRK4(neuron_args)
     
     # HR parameters for bursting
+    neuron.set_param(neun_py.HRDoubleParameter.e, I_ext)
     neuron.set_param(neun_py.HRDoubleParameter.a, 1.0)
     neuron.set_param(neun_py.HRDoubleParameter.b, 3.0)
     neuron.set_param(neun_py.HRDoubleParameter.c, 1.0)
     neuron.set_param(neun_py.HRDoubleParameter.d, 5.0)
-    neuron.set_param(neun_py.HRDoubleParameter.r, 0.006)
-    neuron.set_param(neun_py.HRDoubleParameter.s, 4.0)
+    neuron.set_param(neun_py.HRDoubleParameter.mu, 0.006)
+    neuron.set_param(neun_py.HRDoubleParameter.S, 4.0)
     neuron.set_param(neun_py.HRDoubleParameter.xr, -1.6)
-    neuron.set_param(neun_py.HRDoubleParameter.I, I_ext)
+    neuron.set_param(neun_py.HRDoubleParameter.vh, 1)
     
     # Initial conditions
-    neuron.set(neun_py.HRDoubleVariable.x, -1.5)
+    neuron.set(neun_py.HRDoubleVariable.x, ini_x)
     neuron.set(neun_py.HRDoubleVariable.y, -10.0)
     neuron.set(neun_py.HRDoubleVariable.z, 0.0)
     
     return neuron
 
 # Create two HR neurons with reciprocal inhibition (CPG configuration)
-n1 = create_hr_neuron(3.0)
-n2 = create_hr_neuron(3.0)
+n1 = create_hr_neuron(3.0, -1.5)
+n2 = create_hr_neuron(3.0, 0)
+
 
 # Reciprocal coupling (simulating mutual inhibition)
 s12 = neun_py.ESynHRHRDoubleRK4(
     n1, neun_py.HRDoubleVariable.x,
     n2, neun_py.HRDoubleVariable.x,
-    -0.05, -0.05  # Inhibitory-like coupling
+    -0.75, -0.75  # Inhibitory-like coupling
 )
 
 # Simulation parameters
@@ -67,6 +69,10 @@ times = np.array(times)
 x1_values = np.array(x1_values)
 x2_values = np.array(x2_values)
 
+plt.plot(times, x1_values, 'b-', label='Neuron 1')
+plt.plot(times, x2_values, 'r-', label='Neuron 2')
+plt.legend()
+plt.show()
 # Detect burst peaks (local maxima above threshold)
 def detect_bursts(signal, threshold=0):
     bursts = []
