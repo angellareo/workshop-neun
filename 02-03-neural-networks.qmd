@@ -97,7 +97,7 @@ Run both examples and observe:
 
 
 ::: {.callout-important}
-## Synapse Naming Convention
+## Remember: Synapse Naming Convention
 
 Neun follows a systematic naming pattern for synapses:
 
