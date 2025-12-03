@@ -182,16 +182,6 @@ Computational models help interpret experimental findings:
 Computational models become most powerful when integrated with experimental measurements.
  -->
 
-## Summary
-
-In this introduction, we've covered:
-
-- The motivation for computational neuroscience
-- Levels of neural modeling
-- Single neuron dynamics
-- Network interactions
-- Connection to experimental research
-
 ::: {.callout-note}
 ## Key Takeaways
 
