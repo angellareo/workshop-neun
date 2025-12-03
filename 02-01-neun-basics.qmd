@@ -212,7 +212,6 @@ The basic Neun workflow consists of:
 7. **Read state** using `neuron.get(variable_enum)`
 :::
 
-::: {.callout-note}
 ## Key Takeaways
 
 1. **Neun workflow**: Create args → Instantiate model → Set params → Set vars → Simulate → Record
@@ -220,7 +219,7 @@ The basic Neun workflow consists of:
 3. **Model naming**: `{Model}{Precision}{Integrator}` (e.g., `HHDoubleRK4`)
 4. **Synapses**: Named as `{Type}{Neuron1}{Neuron2}{Precision}{Integrator}`
 5. **Organization**: Write helper functions for creating and configuring neurons
-:::
+
 
 ## Next Steps
 
