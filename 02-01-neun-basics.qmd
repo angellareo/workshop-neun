@@ -220,8 +220,11 @@ The basic Neun workflow consists of:
 4. **Synapses**: Named as `{Type}{Neuron1}{Neuron2}{Precision}{Integrator}`
 5. **Organization**: Write helper functions for creating and configuring neurons
 
+##  To learn more
 
-## Next Steps
+In this workshop we will use Neun in Python, but you can also program your simulations with Neun directly in C++. If you want to use Neun in C++ you can find examples in this repository: github.com/GNB-UAM/Neun-Example
+
+## Next steps
 
 Now that you're familiar with Neun basics, we'll move on to:
 
