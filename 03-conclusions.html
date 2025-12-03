@@ -207,8 +207,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#neun" id="toc-neun" class="nav-link active" data-scroll-target="#neun">Neun</a></li>
-  <li><a href="#your-turn" id="toc-your-turn" class="nav-link" data-scroll-target="#your-turn">Your turn!</a></li>
+  <li><a href="#advanced-topics" id="toc-advanced-topics" class="nav-link active" data-scroll-target="#advanced-topics">Advanced topics</a></li>
+  <li><a href="#neun" id="toc-neun" class="nav-link" data-scroll-target="#neun">Neun</a>
+  <ul class="collapse">
+  <li><a href="#now-is-your-turn" id="toc-now-is-your-turn" class="nav-link" data-scroll-target="#now-is-your-turn">Now is your turn! 🫵</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -235,36 +238,47 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Computational neuroscience provides a framework for understanding the brain by combining theoretical, experimental, and computational approaches. By abstracting complex neural systems into models, we can uncover principles that govern brain function, predict behavior, and guide experiments in ways that would be difficult with observation alone.</p>
+<p>Computational neuroscience provides a framework for understanding the brain by combining different approaches: mathematics, computer science, and theoretical analysis allow us to understand the principles that govern the development, structure, physiology and cognitive abilities of the nervous system.</p>
+<p>By abstracting complex neural systems into models, we can uncover principles that govern brain function, predict behavior, and guide experiments in ways that would be difficult with observation alone.</p>
 <p>Key insights include:</p>
 <ul>
-<li><strong>Modeling as a tool for understanding</strong>: Models are not just simulations; they are ways to formalize hypotheses, test ideas, and explore “what-if” scenarios in a controlled setting.<br>
+<li><strong>Modeling as a tool for understanding</strong>. Models are not just simulations; they are ways to formalize hypotheses, test ideas, and explore “what-if” scenarios in a controlled setting.<br>
 </li>
-<li><strong>Levels of abstraction matter</strong>: Different questions require different modeling approaches, from detailed biophysical models to abstract system-level representations. Choosing the right level of detail is essential for balancing insight and computational efficiency.<br>
+<li><strong>Levels of abstraction matter</strong>: Different questions require different modeling approaches, from detailed biophysical models to abstract system-level representations. Choosing the right level of detail is essential.<br>
 </li>
 <li><strong>Emergent behavior arises from interactions</strong>: Neural networks exhibit behaviors that are not present in single neurons, highlighting the importance of connectivity, dynamics, and feedback.<br>
 </li>
-<li><strong>Integration is essential</strong>: Combining computational models with experimental data strengthens predictions, validates theories, and provides deeper understanding than either approach alone.<br>
+<li><strong>Combining computational models with experimental data</strong> improve the models, and strengthens predictions.<br>
 </li>
-<li><strong>Iterative refinement drives progress</strong>: Modeling is a cyclical process: build, simulate, analyze, compare with data, and refine. This iterative loop accelerates learning and discovery in neuroscience.<br>
-</li>
-<li><strong>Tools empower exploration</strong>: Software frameworks and simulation libraries enable rapid prototyping, reproducibility, and scalability, allowing researchers to focus on the science rather than implementation details.</li>
+<li><strong>Iterative refinement drives progress</strong>: Modeling is a cyclical process: build, simulate, analyze, compare with data, and refine. This iterative loop accelerates learning and discovery in neuroscience.</li>
+<li><strong>Tools empower exploration</strong>: Software frameworks and simulation libraries like Neun enable rapid prototyping, reproducibility, and scalability, allowing researchers to focus on the science rather than implementation details.</li>
 </ul>
 <p>Ultimately, computational models serve as a bridge between intuition and experiment, allowing us to explore the principles of neural computation, predict outcomes, and uncover mechanisms that underlie cognition and behavior. Embracing these approaches equips researchers with a versatile toolkit for both discovery and innovation in neuroscience.</p>
-<section id="neun" class="level1">
-<h1>Neun</h1>
-<p>Neun is a open-source tool for modelling and efficient simulation, thanks to its implementation in C++. We have seen along the workshop how to implement different models and some of the many different things we can do when simulating neuronal activity.</p>
+<section id="advanced-topics" class="level2">
+<h2 class="anchored" data-anchor-id="advanced-topics">Advanced topics</h2>
+<p>There are some advanced topics that we have not covered in this workshop, but that you can explore on your own:</p>
+<ul>
+<li><strong>Fitting to experimental data</strong>: Use optimization techniques to fit model parameters to real neural recordings.</li>
+<li><strong>Large-scale simulations</strong>: Explore how to simulate larger networks efficiently using parallel computing.</li>
+<li><strong>Plasticity and learning rules</strong>: Implement synaptic plasticity mechanisms to study how synapses adapt.</li>
+</ul>
 </section>
-<section id="your-turn" class="level1">
-<h1>Your turn!</h1>
-<p>Now you have Neun in your power, and the knowledge to use it, so use it wisely. And remember, you can also contribute to the project via pull request and include any model that you want.</p>
-<p>Contact us if you have any questions or want to develop something together!</p>
+<section id="neun" class="level2">
+<h2 class="anchored" data-anchor-id="neun">Neun</h2>
+<p>As you now know, Neun is an open-source tool for modeling and efficient simulation.</p>
+<p>We have seen along the workshop how to use Neun to create and simulate neurons and simple neural networks, how to analyze the results, and how to visualize the dynamics.</p>
+<section id="now-is-your-turn" class="level3">
+<h3 class="anchored" data-anchor-id="now-is-your-turn">Now is your turn! 🫵</h3>
+<p>Now you have the power to use Neun, so use it wisely ;)</p>
+<p>And remember, <strong>you can also contribute to the project via pull request</strong> (for example, to include any improvement that you may want to use).</p>
+<p>Contact us if you have any questions or if you want to develop something together!</p>
 <pre><code>angel.lareo@uam.es 
 alicia.garrido@uam.es</code></pre>
 
 
 <!-- -->
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -729,31 +743,43 @@ alicia.garrido@uam.es</code></pre>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: show</span></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Computational neuroscience provides a framework for understanding the brain by combining theoretical, experimental, and computational approaches. By abstracting complex neural systems into models, we can uncover principles that govern brain function, predict behavior, and guide experiments in ways that would be difficult with observation alone.</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Computational neuroscience provides a framework for understanding the brain by combining different approaches: mathematics, computer science, and theoretical analysis  allow us to understand the principles that govern the development, structure, physiology and cognitive abilities of the nervous system.</span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>Key insights include:</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>By abstracting complex neural systems into models, we can uncover principles that govern brain function, predict behavior, and guide experiments in ways that would be difficult with observation alone.</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Modeling as a tool for understanding**: Models are not just simulations; they are ways to formalize hypotheses, test ideas, and explore “what-if” scenarios in a controlled setting.  </span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Levels of abstraction matter**: Different questions require different modeling approaches, from detailed biophysical models to abstract system-level representations. Choosing the right level of detail is essential for balancing insight and computational efficiency.  </span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Emergent behavior arises from interactions**: Neural networks exhibit behaviors that are not present in single neurons, highlighting the importance of connectivity, dynamics, and feedback.  </span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Integration is essential**: Combining computational models with experimental data strengthens predictions, validates theories, and provides deeper understanding than either approach alone.  </span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Iterative refinement drives progress**: Modeling is a cyclical process: build, simulate, analyze, compare with data, and refine. This iterative loop accelerates learning and discovery in neuroscience.  </span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Tools empower exploration**: Software frameworks and simulation libraries enable rapid prototyping, reproducibility, and scalability, allowing researchers to focus on the science rather than implementation details.</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>Ultimately, computational models serve as a bridge between intuition and experiment, allowing us to explore the principles of neural computation, predict outcomes, and uncover mechanisms that underlie cognition and behavior. Embracing these approaches equips researchers with a versatile toolkit for both discovery and innovation in neuroscience.</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>Key insights include:</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Modeling as a tool for understanding**. Models are not just simulations; they are ways to formalize hypotheses, test ideas, and explore “what-if” scenarios in a controlled setting.  </span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Levels of abstraction matter**: Different questions require different modeling approaches, from detailed biophysical models to abstract system-level representations. Choosing the right level of detail is essential.  </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Emergent behavior arises from interactions**: Neural networks exhibit behaviors that are not present in single neurons, highlighting the importance of connectivity, dynamics, and feedback.  </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Combining computational models with experimental data** improve the models, and strengthens predictions.  </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Iterative refinement drives progress**: Modeling is a cyclical process: build, simulate, analyze, compare with data, and refine. This iterative loop accelerates learning and discovery in neuroscience.</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Tools empower exploration**: Software frameworks and simulation libraries like Neun enable rapid prototyping, reproducibility, and scalability, allowing researchers to focus on the science rather than implementation details.</span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu"># Neun</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>Neun is a open-source tool for modelling and efficient simulation, thanks to its implementation in C++.</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>We have seen along the workshop how to implement different models and some of the many different things we can do when simulating neuronal activity. </span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="fu"># Your turn!</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>Now you have Neun in your power, and the knowledge to use it, so use it wisely.</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>And remember, you can also contribute to the project via pull request and include any model that you want.</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>Contact us if you have any questions or want to develop something together!</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>Ultimately, computational models serve as a bridge between intuition and experiment, allowing us to explore the principles of neural computation, predict outcomes, and uncover mechanisms that underlie cognition and behavior. Embracing these approaches equips researchers with a versatile toolkit for both discovery and innovation in neuroscience.</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">## Advanced topics</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>There are some advanced topics that we have not covered in this workshop, but that you can explore on your own:</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Fitting to experimental data**: Use optimization techniques to fit model parameters to real neural recordings.</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Large-scale simulations**: Explore how to simulate larger networks efficiently using parallel computing.</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Plasticity and learning rules**: Implement synaptic plasticity mechanisms to study how synapses adapt.</span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="in">    angel.lareo@uam.es </span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="in">    alicia.garrido@uam.es</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="fu">## Neun</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>As you now know, Neun is an open-source tool for modeling and efficient simulation.</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>We have seen along the workshop how to use Neun to create and simulate neurons and simple neural networks, how to analyze the results, and how to visualize the dynamics.</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="fu">### Now is your turn! 🫵</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>Now you have the power to use Neun, so use it wisely ;)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>And remember, **you can also contribute to the project via pull request** (for example, to include any improvement that you may want to use).</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>Contact us if you have any questions or if you want to develop something together!</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="in">    angel.lareo@uam.es </span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="in">    alicia.garrido@uam.es</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
