@@ -199,16 +199,17 @@ A classic CPG uses two neurons with mutual inhibition creating alternating burst
 Modify the CPG... 💻
 
 1. Change coupling strength (`-0.05` → `-0.03` or `-0.08`)
-2. Try asymmetric coupling (different values for each direction)
+2. Try asymmetric coupling (different values for each direction). How does this affect coordination?
 3. Adjust external drive `I` parameter
 
 Can you create a different phase relationship?
 
 <details>
 <summary>Hint</summary>
-Stronger coupling → faster synchronization  
-Asymmetric coupling → asymmetric phase relationship  
-Higher drive → faster rhythm
+**2**: Use different values for the two conductance parameters:
+```python
+synapse = neun_py.ESynHHHHDoubleRK4(h1, v, h2, v, -0.003, -0.001)
+```
 </details>
 :::
 
@@ -275,25 +276,19 @@ voltages = np.zeros((n_neurons, n_steps))
 
 Test your understanding with these challenges:
 
-1. **Bidirectional vs Unidirectional**: Create a synapse with asymmetric coupling (different conductances in each direction). How does this affect synchronization?
+1. **Critical coupling**: Find the minimum coupling strength needed for a chain of 5 neurons to propagate a signal from first to last.
 
-2. **Network motifs**: Build a 3-neuron network with a "feedback loop" (1→2→3→1). Compare its dynamics to a simple chain.
+2. **Network motifs**: Build an all-to-all neural network. Check its dynamics using a raster plot.
 
 3. **Heterogeneous network**: Create a network mixing HH and HR neurons. Use `ESynHHHRDoubleRK4` for cross-type connections.
 
-4. **Phase analysis**: For the CPG, compute the phase difference as a percentage of the cycle period. Is it stable at 50%?
+4. **Oscillation frequency**: Modify CPG parameters to generate faster rhythms. Can you reach 10 Hz? 50 Hz?
 
-5. **Critical coupling**: Find the minimum coupling strength needed for a chain of 5 neurons to propagate a signal from first to last.
+5. **Interval analysis**: For different intervals in the CPG (within the same neuron or between neurons), compute the difference in duration of the interval between cycles as a percentage of each cycle period.
 
-6. **Oscillation frequency**: Modify CPG parameters to generate faster rhythms. Can you reach 10 Hz? 50 Hz?
 
 <details>
 <summary>Solution Hints</summary>
-
-**Ex 1**: Use different values for the two conductance parameters:
-```python
-synapse = neun_py.ESynHHHHDoubleRK4(h1, v, h2, v, -0.003, -0.001)
-```
 
 **Ex 3**: Mix neuron types by creating different neurons and using cross-type synapse classes:
 ```python
