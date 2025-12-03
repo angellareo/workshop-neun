@@ -37,7 +37,7 @@ Computational neuroscience bridges the gap between experimental observations and
 
 1. **Theoretical Foundations**: Understanding why and how to model neural systems
 2. **Practical Skills**: Learning to use the Neun library for neural simulations
-3. **Real Applications**: Understanding how to use the models as a complement to experimental findings
+3. **Real Applications**: Create your own models and circuits!
 
 ## The Neun Library
 
