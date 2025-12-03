@@ -39,7 +39,9 @@ We have seen along the workshop how to use Neun to create and simulate neurons a
 ### Now is your turn! 🫵
 Now you have the power to use Neun, so use it wisely ;)
 
-And remember, **you can also contribute to the project via pull request** (for example, to include any improvement that you may want to use).
+And remember, **you can also contribute to the project via pull request** (for example, to include any improvement that you may want to use). 
+
+If you want to include a new model or use Neun in C++ check out this example repository: github.com/GNB-UAM/Neun-Example
 
 Contact us if you have any questions or if you want to develop something together!
 
