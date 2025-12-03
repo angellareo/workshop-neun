@@ -208,9 +208,6 @@ In the next sections, we'll:
 
 👉 **Continue to [Part 2: Getting Started with Neun](02-01-neun-basics.qmd)**
 
-## References
-
-
 ## Further Reading
 
 - Dayan, P., & Abbott, L. F. (2001). *Theoretical Neuroscience*. MIT Press.
