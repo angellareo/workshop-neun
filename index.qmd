@@ -50,7 +50,7 @@ You can directly work in C++ or use our [Python bindings](https://github.com/GNB
 ### Part 1: Introduction to Computational Neuroscience
 Learn the fundamental principles of neural modeling, from single neurons to networks. Understand the mathematical foundations and their biological relevance.
 
-**Duration**: ~15 min
+**Duration**: ~20 min
 
 **Topics**:
 
@@ -58,10 +58,10 @@ Learn the fundamental principles of neural modeling, from single neurons to netw
 - Single neuron dynamics
 - From neurons to networks
 
-### Part 2: Hands-on with Neun to simulate neural dynamics
+### Part 2: Hands-on with Neun to simulate neural dynamics and networks
 Get practical experience building and simulating neural models using the Neun library.
 
-**Duration**: ~2 h
+**Duration**: ~3 h
 
 **Topics**:
 
@@ -69,11 +69,11 @@ Get practical experience building and simulating neural models using the Neun li
 - Creating single neuron models
 - Building and simulating neural networks
 - Advanced modeling techniques
+- Analyzing the results
 
-### Part 3: Analyzing neural dynamics from Neun's simulations
-Learn how to analyze the results obtained from simulating neural models using Neun.
+### Part 3: Conclusions and closing
 
-**Duration**: ~45 min
+**Duration**: ~20 min
 
 **Topics**:
 - Analyzing neural dynamics
