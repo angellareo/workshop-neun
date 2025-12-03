@@ -255,9 +255,8 @@ The CV quantifies spike time variability:
 Try these exercises to solidify your understanding:
 
 1. **Parameter sweep**: Create a 2D parameter sweep varying both `gna` and `gk` in the HH model
-2. **Integrator comparison**: Compare RK4 vs RK6 integrators for the same HH neuron
-3. **Phase plane**: Plot the (V, n) phase plane for the HH model
-4. **Noise effects**: Compare firing patterns with different noise levels in the input current
+2. **Phase plane**: Plot the (V, n) phase plane for the HH model
+3. **Noise effects**: Compare firing patterns with different noise levels in the input current
 
 
 **Continue to [2.3: Modeling Neural Networks](02-03-neural-networks.qmd)**
